@@ -223,7 +223,7 @@ const saveLocal=()=>{try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}}
 const DB={base:null,trades:null,seeded:false,chain:Promise.resolve()};
 let syncState='wait';
 function setSync(s){syncState=s;const el=$('#syncChip');if(el)el.outerHTML=syncChip();}
-const syncChip=()=>{const t={wait:['','Conectando…'],local:['',(typeof CLOUD!=='undefined'&&CLOUD.au&&!CLOUD.uid)?'Sin sincronizar · toca para entrar':'Solo en este dispositivo'],ok:['ok','Sincronizado'],err:['err','Sin conexión con la nube']}[syncState];return '<span class="sync '+t[0]+'" id="syncChip">'+t[1]+'</span>';};
+const syncChip=()=>{const t={wait:['','Conectando…'],local:['',location.hostname==='127.0.0.1'?'Abre localhost para sincronizar':((typeof CLOUD!=='undefined'&&CLOUD.au&&!CLOUD.uid)?'Sin sincronizar · toca para entrar':'Solo en este dispositivo')],ok:['ok','Sincronizado'],err:['err','Sin conexión con la nube']}[syncState];return '<span class="sync '+t[0]+'" id="syncChip">'+t[1]+'</span>';};
 const enqueue=fn=>{DB.chain=DB.chain.then(fn).catch(()=>setSync('err'));};
 const clean=o=>JSON.parse(JSON.stringify(o));
 let cfgT=null;

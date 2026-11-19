@@ -10,6 +10,7 @@ const CLOUD_SKIP=['newsAuto','lastBackup'];      // se calculan en cada disposit
 var CLOUD={fs:null,au:null,uid:null,email:null,base:'',ready:false,unsubs:[],timers:{},first:{t:false,c:false}};
 
 function cloudMeta(){S.sync=S.sync||{};S.sync.cu=S.sync.cu||{};S.sync.tomb=S.sync.tomb||{};return S.sync;}
+function cloudErr(e){CLOUD.lastErr=(e&&(e.code||e.message))||'error';setSync('err');}
 const cloudEmpty=j=>j===undefined||j==='{}'||j==='[]'||j==='null'||j==='""'||j==='0'||j==='false';
 
 /* línea base: lo que ya había al arrancar no cuenta como «editado» */
@@ -32,7 +33,7 @@ function cloudCfg(){
 }
 function cloudPushKey(k){
   const m=cloudMeta(),j=JSON.stringify(S.cfg[k]),u=m.cu[k]||1;
-  CLOUD.fs.collection(CLOUD.base+'/mando_cfg').doc(k).set({j,u}).then(()=>{m.lastj[k]=j;saveLocal();}).catch(()=>setSync('err'));
+  CLOUD.fs.collection(CLOUD.base+'/mando_cfg').doc(k).set({j,u}).then(()=>{m.lastj[k]=j;saveLocal();}).catch(cloudErr);
 }
 function cloudFlushCfg(){
   if(!CLOUD.ready)return;
@@ -44,8 +45,8 @@ function cloudFlushCfg(){
 }
 
 /* operaciones */
-function cloudPushTrade(t){if(!CLOUD.ready)return;CLOUD.fs.collection(CLOUD.base+'/mando_trades').doc(t.id).set(JSON.parse(JSON.stringify(Object.assign({},t,{u:t.u||1})))).catch(()=>setSync('err'));}
-function cloudPushDel(id,u){if(!CLOUD.ready)return;CLOUD.fs.collection(CLOUD.base+'/mando_trades').doc(id).set({id,del:true,u}).catch(()=>setSync('err'));}
+function cloudPushTrade(t){if(!CLOUD.ready)return;CLOUD.fs.collection(CLOUD.base+'/mando_trades').doc(t.id).set(JSON.parse(JSON.stringify(Object.assign({},t,{u:t.u||1})))).catch(cloudErr);}
+function cloudPushDel(id,u){if(!CLOUD.ready)return;CLOUD.fs.collection(CLOUD.base+'/mando_trades').doc(id).set({id,del:true,u}).catch(cloudErr);}
 function cloudTrade(t){const m=cloudMeta();t.u=Date.now();delete m.tomb[t.id];cloudPushTrade(t);}      // desde putTrade()
 function cloudDelete(id){const m=cloudMeta(),u=Date.now();m.tomb[id]=u;cloudPushDel(id,u);}               // desde delTrade()
 /* tras restaurar una copia o cargar los datos iniciales: lo nuevo gana a lo que hubiera en la nube */
@@ -107,8 +108,8 @@ function cloudAttach(fs,uid,email){
   cloudStop();
   CLOUD.fs=fs;CLOUD.uid=uid;CLOUD.email=email;CLOUD.base='users/'+uid;CLOUD.ready=true;CLOUD.first={t:false,c:false};
   cloudBaseline();setSync('wait');
-  CLOUD.unsubs.push(fs.collection(CLOUD.base+'/mando_trades').onSnapshot({includeMetadataChanges:true},snap=>{cloudApplyTrades(snap);cloudDone();},()=>setSync('err')));
-  CLOUD.unsubs.push(fs.collection(CLOUD.base+'/mando_cfg').onSnapshot({includeMetadataChanges:true},snap=>{cloudApplyCfg(snap);cloudDone();},()=>setSync('err')));
+  CLOUD.unsubs.push(fs.collection(CLOUD.base+'/mando_trades').onSnapshot({includeMetadataChanges:true},snap=>{cloudApplyTrades(snap);cloudDone();},cloudErr));
+  CLOUD.unsubs.push(fs.collection(CLOUD.base+'/mando_cfg').onSnapshot({includeMetadataChanges:true},snap=>{cloudApplyCfg(snap);cloudDone();},cloudErr));
 }
 function cloudInit(){
   const cfg=window.LIBRETA_FIREBASE;
@@ -135,9 +136,17 @@ function cloudAuth(mode){
 }
 function cloudDialog(){
   if(!CLOUD.au){dialog('<h2 style="font-size:28px">Sincronización</h2><p class="small muted">No se pudo cargar (¿sin conexión?). La app sigue funcionando y guardando en este dispositivo. Cuando haya conexión, recarga la página.</p>',[{label:'Cerrar'}]);return;}
+  if(location.hostname==='127.0.0.1'){
+    dialog('<h2 style="font-size:28px">Abre otra dirección</h2><p class="small">Desde <b>127.0.0.1</b> Firebase no deja iniciar sesión. Abre <b>http://localhost:8123</b>. Ojo: los datos de esta pestaña no se ven allí. Para llevarlos usa «Copiar todos mis datos» aquí y «Pegar datos» allí.</p>',[{label:'Cerrar'}]);
+    return;
+  }
   if(CLOUD.uid){
-    dialog('<h2 style="font-size:28px">Sincronización activa</h2><p class="small">Sesión iniciada como <b>'+esc(CLOUD.email||'')+'</b>. Tus operaciones, cuentas, notas y repaso se igualan solos en todos tus dispositivos.</p>',
-      [{label:'Cerrar'},{label:'Cerrar sesión',run:()=>{CLOUD.au.signOut();toast('Sesión cerrada en este dispositivo');}}]);
+    dialog('<h2 style="font-size:28px">Sincronización activa</h2><p class="small">Sesión iniciada como <b>'+esc(CLOUD.email||'')+'</b>.</p><p id="cdiag" class="small muted">Comprobando la nube…</p>',
+      [{label:'Cerrar'},{label:'Subir todo desde aquí',run:()=>{cloudReplaceAll([]);toast('Subiendo todo a la nube…');}},{label:'Cerrar sesión',run:()=>{CLOUD.au.signOut();toast('Sesión cerrada en este dispositivo');}}]);
+    CLOUD.fs.collection(CLOUD.base+'/mando_trades').get().then(sn=>{
+      const rem=sn.docs.filter(d=>!(d.data()||{}).del).length,loc=Object.keys(S.trades).length,e=document.getElementById('cdiag');
+      if(e)e.innerHTML='Operaciones: <b>'+loc+'</b> en este dispositivo · <b>'+rem+'</b> en la nube.'+(loc!==rem?'<br>Si faltan datos en la nube y los tienes aquí, pulsa «Subir todo desde aquí».':'<br>Todo igualado.')+(CLOUD.lastErr?'<br><span style="color:var(--coral)">Último error: '+esc(CLOUD.lastErr)+'</span>':'');
+    }).catch(er=>{const e=document.getElementById('cdiag');if(e)e.innerHTML='<span style="color:var(--coral)">No pude leer la nube: '+esc((er&&(er.code||er.message))||'error')+'</span>';});
     return;
   }
   dialog('<h2 style="font-size:28px">Iniciar sesión</h2><p class="small muted">Usa el mismo correo y contraseña en todos tus dispositivos. Tus datos se guardan en tu carpeta privada.</p>'+
