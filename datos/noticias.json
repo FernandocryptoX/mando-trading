@@ -1,0 +1,67 @@
+{
+ "updated": "2026-11-18T14:26:42.354Z",
+ "source": "ForexFactory (feed FairEconomy) · solo USD, impacto medio y alto · hora de Nueva York",
+ "weeks": [
+  "2026-11-16"
+ ],
+ "days": {
+  "2026-11-16": [
+   {
+    "k": "otra",
+    "t": "12:00",
+    "title": "Fed Chairman Warsh Speaks",
+    "impact": "High"
+   }
+  ],
+  "2026-11-17": [
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Core Retail Sales m/m",
+    "impact": "High"
+   },
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Retail Sales m/m",
+    "impact": "High"
+   }
+  ],
+  "2026-11-18": [
+   {
+    "k": "otra",
+    "t": "14:00",
+    "title": "FOMC Meeting Minutes",
+    "impact": "High"
+   }
+  ],
+  "2026-11-19": [
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Philly Fed Manufacturing Index",
+    "impact": "Medium"
+   },
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Unemployment Claims",
+    "impact": "Medium"
+   }
+  ],
+  "2026-11-20": [
+   {
+    "k": "otra",
+    "t": "10:00",
+    "title": "Revised UoM Consumer Sentiment",
+    "impact": "Medium"
+   },
+   {
+    "k": "otra",
+    "t": "10:00",
+    "title": "Revised UoM Inflation Expectations",
+    "impact": "Medium"
+   }
+  ]
+ }
+}
