@@ -2,7 +2,7 @@
 const CACHE = 'mando-v2';
 const BASE = ['./', 'index.html', 'estudio/curso.js', 'estudio/estudio.js', 'estudio/estudio.css', 'modulos/noticias.js', 'modulos/banca.js', 'modulos/tradovate.js', 'modulos/sync.js', 'firebase-config.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE).catch(() => {})).then(() => self.skipWaiting())); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('mando-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || !/^https?:/.test(req.url)) return;
