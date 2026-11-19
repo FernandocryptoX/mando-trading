@@ -1539,7 +1539,73 @@ const DAYS = [
      hint:'Las 4 preguntas a las 15:20 (9:20 NY). Si luego te equivocas, apunta qué viste mal: ese día no se opera.', pre:''},
 
     {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, la promoción de su vídeo anterior y la narración vela a vela de los siete días. En la transcripción hay <b>palabras en blanco</b> (nombres de conceptos que no se tradujeron), así que algún matiz puede faltar. Los ejemplos no indican fechas ni instrumento (habla del Nasdaq). <b>Ojo a la hora:</b> dice 9:20 NY y 10–15 minutos antes, pero en la demo marca las 9:00 y en la tarea te pide las 9:00. Transcripción: traducción automática al inglés.'}
-   ]}
+   ]},
+ { id:22, title:'Confía en ti', tags:['psi','rie'], mins:14, status:'done',
+   intro:'Casi el último vídeo de psicología «general». Mensaje central: se puede ganar dinero con trading y hay que creérselo, sin hacer caso del ruido de internet. En la segunda mitad entra en algo muy práctico: mover a break even demasiado pronto o cerrar antes del objetivo.',
+   blocks:[
+    {t:'idea', text:'Cree que <span class="mk">puedes ganar dinero</span> con una estrategia que has probado, <span class="mk">ignora las opiniones de internet</span> y, una vez dentro de una operación, <span class="mk">no toques nada</span> si no tienes una razón.'},
+
+    {t:'h2', text:'Se puede ganar dinero', tape:'creérselo'},
+    {t:'cards', items:[
+      {c:'m', ico:'💪', h:'No hace falta ser un genio', p:'Dice que no tiene un talento especial para esto: <b>puso muchas horas</b>, aprendió lo que necesitaba y, sobre todo, <b>aprendió de sus errores y de su psicología</b>.'},
+      {c:'b', ico:'🔬', h:'Compruébalo tú', p:'Ante los comentarios de «no tienes ni idea», «las cuentas de prop firm no son trading» o «vendes humo», lo mejor es <b>ignorarlos</b> y verlo por ti mismo con tu propio backtesting.'},
+      {c:'y', ico:'🧪', h:'Confía en lo que has probado', p:'Sabe que su estrategia funciona porque <b>lo vio en backtesting</b> y porque, si la sigue un tiempo, da resultados. Dice que con capital propio funcionaría igual, pero todavía <b>no lo ha demostrado</b> (no tiene cuenta personal) y lo promete para más adelante.'}
+    ]},
+    {t:'p', cls:'detail', html:'No quiere sonar a gurú: nada de «manifestar» ni historias de superación inventadas. Cuenta que su vida era normal y que dejó la universidad <b>cuando vio que ganaba dinero</b> con cuentas fondeadas. <span class="muted">Hay quien dice que las cuentas fondeadas «no son trading»; él lo considera discutible.</span>'},
+
+    {t:'h2', text:'Lo que hay detrás', tape:'el trabajo'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s psi">Meses de práctica, pérdidas y cuentas quemadas</span><span class="ar">→</span>
+        <span class="s tec">Revisar el journal y backtestear muchas horas</span><span class="ar">→</span>
+        <span class="s tec">Apuntar todo en un cuaderno</span><span class="ar">→</span>
+        <span class="s fin">Ahora: 1 h de gráfico al día (2 como mucho)</span>
+      </div>
+      <div class="cap">Mira el gráfico <b>solo 1–2 h al día</b>, pero <b>llegó ahí tras mucho trabajo</b>. Esa fase de estudiar y practicar es donde mucha gente se queda atascada.</div>`},
+    {t:'quote', text:'Si no cambias nada, nada cambia.', src:'Frase que repite el autor'},
+    {t:'p', html:'¿Cinco años operando sin ganar? No es falta de talento: <span class="mk c">es repetir los mismos errores una y otra vez</span>. Cuando dejas de cometerlos, llegan los resultados. Por eso le da tanto peso a la psicología y a aprender de los errores.'},
+
+    {t:'h2', text:'Pocas operaciones, bien elegidas', tape:'su enfoque'},
+    {t:'cards', items:[
+      {c:'m', ico:'🎯', h:'Frecuencia baja', p:'En su ejemplo del mes: <b>5 operaciones en 16 días</b> con un win rate de ~70 %. Esperar solo trades muy buenos y operar poco es lo que hace posible ese resultado.'},
+      {c:'y', ico:'🧾', h:'Cuenta cuánto gastas', p:'Para saber si compensa, compara <b>lo gastado en cuentas con lo retirado</b>: si gastas 50 y sacas 40, has perdido 10. Es justo lo que mide la sección <b>Banca</b> de esta app.'},
+      {c:'b', ico:'💸', h:'No se retira todo', p:'Con cuentas fondeadas <b>no puedes retirar todo el saldo de una vez</b>: hay límites por cuenta. Cómo escalar con varias cuentas lo verá más adelante.', detail:true}
+    ]},
+
+    {t:'h2', text:'Break even demasiado pronto', tape:'práctica'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s">Arriesgas 500 $ (ejemplo)</span><span class="ar">→</span>
+        <span class="s tec">Vas ganando 105 $</span><span class="ar">→</span>
+        <span class="s psi">Mueves el stop a break even</span><span class="ar">→</span>
+        <span class="s fin">Pregúntate: ¿por qué?</span>
+      </div>
+      <div class="cap">Antes de tocar nada, <b>hay que saber el motivo</b>. Dice que él lo hacía mucho.</div>`},
+    {t:'cards', items:[
+      {c:'c', ico:'😰', h:'Arriesgas más de la cuenta', p:'No quieres darte ni la opción de perder, así que mueves el stop a break even <b>demasiado pronto</b>.'},
+      {c:'c', ico:'🫣', h:'Miedo a que gire', p:'Temes que el precio dé la vuelta y toque tu stop. Eso significa <b>no confiar en tu estrategia</b> (lo trató en el <a href="#dia-9" style="color:var(--yellow)">Día 9</a>).'},
+      {c:'c', ico:'💵', h:'Por la cifra en dólares', p:'«Voy 600 de 1.000, muevo a break even.» <b>Mover por dólares o por emoción</b> no tiene razón de ser.'}
+    ]},
+    {t:'idea', text:'Mueves a break even <span class="mk">solo cuando el precio llega a un key level</span> (una zona de conflicto), <span class="mk">no por dólares ni por emociones</span>. Cuál y cuándo exactamente lo verá más adelante.'},
+    {t:'p', html:'<b>Lo mismo al cerrar:</b> si tu objetivo está en un nivel y llevas casi todo el beneficio, <b>no cierras</b>. El precio tiene que llegar a ese nivel. A largo plazo, <span class="mk">psicológicamente compensa dejar que las operaciones trabajen</span>.'},
+
+    {t:'h2', text:'Una vez dentro, no se toca', tape:'regla'},
+    {t:'cards', items:[
+      {c:'m', ico:'🧊', h:'La regla', p:'Una regla que tuvo (ya no hace falta pensarla): <b>cuando decides entrar, no tocas nada</b>. Lo único que haces con el ratón es salir cuando toque. Entrar ya fue la decisión y asumiste ese riesgo, <b>sea un buen trade o uno malo</b>.'}
+    ]},
+    {t:'list', items:[
+      'Si llega a tu <b>stop</b> o a tu <b>objetivo</b>, <b>revisas el porqué</b>.',
+      'Si era un buen trade, <b>no pasa nada</b>.',
+      'Si era malo, <b>aprendes el porqué</b>.',
+      'Si salió increíble, es increíble. Lo importante es <b>seguir el sistema</b>.'
+    ]},
+    {t:'p', cls:'detail', html:'<span class="muted">⚠️ La transcripción pierde las palabras «stop loss» y «take profit» en este tramo, así que la lista está reconstruida por el sentido. Compruébala en el vídeo (≈ 12:24–12:55).</span>'},
+
+    {t:'mine', id:'d22-be', h:'¿Cuándo muevo yo el stop?', lab:'Esto es tuyo', ph:'La última vez que moví a break even o cerré antes del objetivo: ¿por qué lo hice (dólares, miedo, un nivel)? ¿Qué habría pasado si no lo toco?…',
+     hint:'Pregúntate el porqué antes de tocar la operación. Apúntalo también en el Diario, con los errores «Moví el stop» o «Cerré antes de tiempo».', pre:''},
+
+    {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los comentarios concretos de internet, las anécdotas personales, la pantalla con sus cuentas y las cifras de retiradas y gastos del mes (son su caso, no una referencia para ti), sus planes de vídeos y el adelanto de contenidos. Los números del ejemplo (500 $, 105 $, 1.000 $) son suyos. Transcripción: traducción automática al inglés; <b>pierde palabras clave</b> y no se entiende la cifra que da sobre cuántas operaciones llegan al objetivo, así que no la apunté.'}
+   ]},
 ];
 
 const TOTAL_DAYS = Math.max(21, ...DAYS.map(d=>d.id));
@@ -1581,7 +1647,7 @@ const GLOSSARY=[
  {t:'BSL · Buy-side liquidity', d:'La liquidez de los <b>altos</b>: el dinero (los stops de los que vendieron) que hay por encima de un alto. El precio tiende a ir a por ella.', days:[6]},
  {t:'Contrato (NQ, Z…)', d:'Los futuros vencen cada trimestre (letras H, M, U, Z; Z = diciembre). Se opera el contrato vigente; la app avisa cuando toca cambiar.', days:[2,5]},
  {t:'Correlación NQ–ES', d:'El Nasdaq y el S&amp;P 500 se mueven casi igual. El ES se mira solo para ver si hace o no hace cosas y sacar pistas sobre el NQ.', days:[2]},
- {t:'Cuenta fondeada (prop firm)', d:'Pagas 50–100 € por un examen en cuenta simulada. Si lo apruebas, te dan otra desde la que puedes retirar. La mayoría suspende, y de ahí sale el pago a los pocos. Muchos retiran una vez por suerte y luego lo queman todo porque no estaban preparados.', days:[2,7]},
+ {t:'Cuenta fondeada (prop firm)', d:'Pagas 50–100 € por un examen en cuenta simulada. Si lo apruebas, te dan otra desde la que puedes retirar. La mayoría suspende, y de ahí sale el pago a los pocos. Muchos retiran una vez por suerte y luego lo queman todo porque no estaban preparados.', days:[2,7,22]},
  {t:'Datos CME retrasados', d:'Sin datos de CME en TradingView ves el precio con 10 min de retraso (marca naranja "D"). Suelen venir incluidos con una cuenta fondeada.', days:[5]},
  {t:'Fractal (el precio es)', d:'El precio y las velas se comportan igual en cualquier temporalidad: lo que aprendas a leer en una vale en todas.', days:[4]},
  {t:'High / Low', d:'<b>High</b>: vela alcista seguida de una bajista (se marca la mecha más alta). <b>Low</b>: bajista seguida de alcista. Dos del mismo color no son nada. Los que importan son los swing.', days:[4,6]},
@@ -1598,7 +1664,7 @@ const GLOSSARY=[
  {t:'Marco de entrada (30 s – 5 min)', d:'Los IFVG de entrada solo se toman de <b>30 segundos a 5 minutos</b>. 15 min no; 1 h y 4 h se usan para <b>contexto</b>. Sus trades duran de 1 a 10 min (nunca más de media hora).', days:[13]},
  {t:'Sistema de entrada', d:'El IFVG: la confirmación obligatoria antes de comprar o vender. La liquidez y los FVG dan el contexto; el IFVG dice cuándo entrar. Se entra tras tocar un key level (Día 15).', days:[13,15], more:true},
  {t:'Journal', d:'Registro de cada operación: cómo me siento, qué pienso antes y durante, el RR y las métricas. Sin él no hay aprendizaje, y <b>apuntar sin revisar es como no apuntar</b>.', days:[1,3,5,9], more:true},
- {t:'Miedo a perder', d:'Te saca del trading: piensas en perder dinero, no en el sistema. Casi siempre viene de <b>demasiado riesgo</b> o de <b>no confiar en tu estrategia</b>. Se arregla bajando el riesgo y ganando confianza con práctica, journal y backtesting.', days:[9], more:true},
+ {t:'Miedo a perder', d:'Te saca del trading: piensas en perder dinero, no en el sistema. Casi siempre viene de <b>demasiado riesgo</b> o de <b>no confiar en tu estrategia</b>. Se arregla bajando el riesgo y ganando confianza con práctica, journal y backtesting.', days:[9,22], more:true},
  {t:'Resolver un problema psicológico', d:'Tres preguntas: ¿qué me pasa?, ¿por qué me pasa? y ¿qué hago para que no vuelva a pasar? Después, revisarlo. Un problema (o dos) cada semana.', days:[9,5]},
  {t:'Liquidez', d:'Dinero: las órdenes pendientes (sobre todo stops) que hay en cada alto y cada bajo. El precio va a buscarlo y, al recogerlo, hace el movimiento de verdad hacia el otro lado. Tiene 6 tipos que usa en el día a día (ver Tipos de liquidez).', days:[6,11], more:true},
  {t:'Tipos de liquidez (los 6)', d:'<b>PDH/PDL</b> (día anterior), <b>EH/EL</b> (iguales), <b>REH/REL</b> (casi iguales), <b>data highs/lows</b> (vela de la noticia), <b>NDOG/NWOG</b> (huecos de apertura) y <b>LRL</b>. Sirven de objetivo y de reacción. Dice que normalmente usa 5: el primero es prescindible.', days:[11], more:true},
@@ -1627,7 +1693,13 @@ const GLOSSARY=[
  {t:'Strategy hopping', d:'Cambiar de estrategia o de mentor cada vez que pierdes. A él le costó 9 meses; el problema casi siempre es romper reglas, no la estrategia. No lo hagas por opiniones o polémicas de internet: pruébalo tú en backtesting.', days:[5,12]},
  {t:'Swing high / swing low', d:'Los altos y bajos <b>prominentes</b> del rango: los extremos importantes que despuntan. Son los que se marcan como liquidez.', days:[6,4]},
  {t:'Temporalidad (timeframe)', d:'Cada vela cierra a hora fija y está hecha de otras más pequeñas (1 h = 60 de 1 min). <b>A mayor temporalidad, más importancia.</b>', days:[4,6]},
- {t:'Tendencia', d:'Alcista: máximos y mínimos más altos (HH, HL). Bajista: más bajos (LL, LH). Se mueve en escalera: sube, retrocede, vuelve a subir.', days:[4], more:true}
+ {t:'Tendencia', d:'Alcista: máximos y mínimos más altos (HH, HL). Bajista: más bajos (LL, LH). Se mueve en escalera: sube, retrocede, vuelve a subir.', days:[4], more:true},
+ {t:'Break even demasiado pronto', d:'Mover el stop a break even <b>sin razón</b>: por arriesgar de más, por miedo a que el precio gire o por la cifra en dólares. Solo se mueve cuando el precio llega a un <b>key level</b>, no por dólares ni emociones. Cuándo exactamente lo verá después.', days:[22,9], more:true},
+ {t:'Cerrar antes del objetivo', d:'Cerrar una operación que va bien antes de que llegue al objetivo, «porque ya voy ganando». Si el objetivo está en un nivel, el precio tiene que llegar: <b>dejar que la operación trabaje</b> compensa psicológicamente a largo plazo.', days:[22]},
+ {t:'Una vez dentro, no se toca', d:'Regla: cuando decides entrar, <b>no tocas nada</b> (solo el ratón para salir cuando toque). Si llega al stop o al objetivo, <b>revisas el porqué</b>: si era bueno, no pasa nada; si era malo, aprendes.', days:[22], more:true},
+ {t:'Ruido de internet', d:'Comentarios de «no tienes ni idea», «las prop firms no son trading» o «vendes humo». Recomendación: <b>ignorarlos</b> y comprobarlo tú con tu propio backtesting.', days:[22]},
+ {t:'Si no cambias nada, nada cambia', d:'Frase que repite. Cinco años operando sin ganar suele ser <b>repetir los mismos errores</b>, no falta de talento. Se rompe aprendiendo de los errores y trabajando la psicología.', days:[22,1]},
+ {t:'Gastado vs retirado', d:'Para saber si compensa, compara lo gastado en cuentas con lo retirado: si gastas 50 y sacas 40, has perdido 10. Con cuentas fondeadas no puedes retirar todo el saldo de una vez.', days:[22,2]}
 ];
 const UL_SVG='<svg viewBox="0 0 200 14" preserveAspectRatio="none"><path d="M2 9 C 40 2, 70 13, 110 6 S 170 4, 198 8" fill="none" stroke="#ffd84d" stroke-width="3.5" stroke-linecap="round"/></svg>';
 
@@ -1639,13 +1711,13 @@ const SISTEMA=[
  {n:5,h:'Confirmar con el IFVG',st:'ok',p:'El IFVG es la confirmación y es donde entras. Solo de <b>30 s a 5 min</b>, nunca de 15.',days:[13]},
  {n:6,h:'Reforzar con SMT y true manipulation',st:'part',p:'Opcional: un SMT en el key level mejora el trade, pero solo vale si <b>los dos índices están en sitio de distribuir</b>. Para él la true manipulation es obligatoria.',days:[17]},
  {n:7,h:'Elegir el objetivo',st:'part',p:'Liquidez objetivo (BSL/SSL, LRL, equal highs/lows). Cuenta los puntos de liquidez <b>a favor y en contra</b>. Su «draw on liquidity» es el high o low que quieres que el precio barra ese día (p. ej. un FVG sin tocar arriba); cómo elegir entre varios lo explicará con las condiciones.',days:[21,15,11]},
- {n:8,h:'Stop, riesgo y tamaño',st:'no',p:'Aún no lo ha explicado. Dice que tratará qué riesgo asumir y cómo escalar con cuentas de prop firm cuando termine la estrategia.',days:[]},
+ {n:8,h:'Stop, riesgo y tamaño',st:'part',p:'Aún no ha explicado qué riesgo asumir ni cómo escalar con prop firms (lo promete tras la estrategia). Sí ha dado una regla de gestión (Día 22): <b>una vez dentro no tocas nada</b>, y el break even solo se mueve cuando el precio llega a un <b>key level</b>, no por dólares ni emociones. Cuál nivel y cuándo lo detallará después.',days:[22]},
  {n:9,h:'Filtro antes de entrar',st:'ok',p:'«Si pierdo este trade, ¿me voy a enfadar?» Si sí, no entres. Y la pregunta clave: ¿está siguiendo tu plan?',days:[18,12]},
  {n:10,h:'Si algo sale mal',st:'ok',p:'Un fallo puntual es error humano; el problema es la cadena de reglas rotas y el revenge trading. Tras mala racha, parar unos días.',days:[14,16,20]}
 ];
 const SIS_ST={ok:{i:'✅',n:'Explicado',c:'c-m'},part:{i:'🟡',n:'A medias',c:'c-y'},no:{i:'⏳',n:'Aún no lo ha explicado',c:'c-c'}};
 
-const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo'};
+const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8'};
 const DUDAS=[
  {id:'smt',st:'ver',h:'¿Cuánto usa él los SMT?',q:'En el Día 13 parecía decir que los usa muy poco (en el audio salían como «SIDs»), y en el Día 17 dice que la true manipulation es obligatoria. Puede ser un fallo de la traducción automática.',how:'Escuchar el Día 13 en español cuando habla de los SMT y el Día 17 desde 9:48.',days:[13,17],links:[['Día 17 · «no todos los SMT son válidos»',YT.d17,588]]},
  {id:'fib',st:'ver',h:'Configuración exacta del Fibonacci',q:'Dice que copies su configuración de la pantalla, pero la transcripción no recoge los valores (niveles, colores, el 0.5).',how:'Pausar el Día 19 al principio y copiar los ajustes del Fibonacci.',days:[19,2],links:[['Día 19 · «copy these settings»',YT.d19,37]]},
@@ -1658,6 +1730,8 @@ const DUDAS=[
  {id:'prev21',st:'ver',h:'Su vídeo anterior sobre daily bias y DOL',q:'Recomienda verlo («mismo concepto con otros ejemplos») y lo deja en la descripción del Día 21. No pude leer la descripción.',how:'Abrir la descripción del Día 21 en YouTube y apuntar el enlace.',days:[21],links:[['Día 21 · su recomendación',YT.d21,265]]},
  {id:'doble',st:'no',h:'Doble SMT, breakaway gaps y cuándo no hace falta true manipulation',q:'Dice que no los explicará porque no los usa ni los domina. Es decisión suya; si te interesan, habría que buscarlos en otro sitio.',how:'Nada que hacer ahora. Decidir más adelante si te importa.',days:[17],links:[['Día 17 · por qué no los explica',YT.d17,1247]]},
  {id:'es15',st:'ver',h:'Días 1–5 contrastados con el audio en español',q:'Esos días se apuntaron con un pase más ligero. Y todo lo demás viene de la traducción automática al inglés, así que algún matiz puede haberse perdido.',how:'Cuando haya cupo, bajar los subtítulos en español y contrastarlos con los apuntes.',days:[1,2,3,4,5],links:[]},
- {id:'d5',st:'ver',h:'¿El Día 5 es de psicología?',q:'El vídeo se titula «Time» pero el contenido es sobre no sobreaprender. Confírmalo tú al verlo.',how:'Mirar la parte donde habla del tiempo en el Día 5.',days:[5],links:[]}
+ {id:'d5',st:'ver',h:'¿El Día 5 es de psicología?',q:'El vídeo se titula «Time» pero el contenido es sobre no sobreaprender. Confírmalo tú al verlo.',how:'Mirar la parte donde habla del tiempo en el Día 5.',days:[5],links:[]},
+ {id:'be22',st:'esp',h:'Cuándo mover a break even',q:'Dice que solo se mueve cuando el precio llega a un key level (zona de conflicto), no por dólares ni emociones, pero no explica qué nivel ni cómo.',how:'Esperar a que lo explique. Es parte del paso 8 de «Mi sistema».',days:[22],links:[['Día 22 · break even demasiado pronto',YT.d22,650]]},
+ {id:'cifra22',st:'ver',h:'La cifra de operaciones que llegan al objetivo',q:'Al hablar de cerrar antes del objetivo dice cuántas de 1.200 operaciones llegarían al objetivo, pero la traducción no lo deja claro y pierde las palabras stop loss y take profit.',how:'Escuchar el Día 22 en español desde 12:24 y comprobar qué dice exactamente.',days:[22],links:[['Día 22 · «no tocas nada»',YT.d22,744]]}
 ];
 const DU_ST={ver:{i:'🔎',n:'Verificar en el vídeo',c:'c-y'},esp:{i:'⏳',n:'Lo explicará él',c:'c-b'},no:{i:'🚫',n:'Él decidió no explicarlo',c:'c-c'}};
