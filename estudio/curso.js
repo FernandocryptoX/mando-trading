@@ -1672,10 +1672,62 @@ const DAYS = [
      hint:'Compara con tus operaciones del diario: ¿hubo barrida y ML? ¿Esperaste el IFVG del timeframe alto?', pre:''},
 
     {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, sus quejas por la duración del bootcamp, su cansancio y las dudas sobre si lo explica bien. En la transcripción hay horas del reloj del gráfico que no se pueden usar (y el primer ejemplo se entiende mal sin verlo). No dice el instrumento ni la fecha de los ejemplos. <b>«Sponsorship» lo menciona como pendiente</b> y no lo define. Transcripción: traducción automática al inglés.'}
+   ]},
+
+ { id:24, title:'Perder es normal', tags:['psi','rie'], mins:10, status:'done',
+   intro:'Psicología, grabado el día que perdió su primer stop en directo delante de más de mil personas. La idea: perder forma parte de la estadística, y la reacción importa más que el stop.',
+   blocks:[
+    {t:'idea', text:'Una operación puede tener <span class="mk">todo a favor y aun así perder</span>: es parte de la estadística. No es un error, y <span class="mk">siempre encontrarás algo en contra</span> si lo buscas.'},
+
+    {t:'h2', text:'Saberlo no es reaccionar bien', tape:'la idea'},
+    {t:'p', html:'Casi todo el mundo sabe que en trading <b>no se gana siempre</b>. Otra cosa es <b>cómo reaccionas</b>: tras muchas ganadoras, la primera pérdida cuesta y no la «interiorizas». Las reacciones malas ya las vimos:'},
+    {t:'list', items:[
+      '<b>Revenge trading</b> (<a href="#dia-14" style="color:var(--yellow)">Día 14</a>), <b>FOMO</b> al día siguiente (<a href="#dia-18" style="color:var(--yellow)">Día 18</a>), <b>subir el riesgo</b>, <b>ir con prisa</b> (<a href="#dia-7" style="color:var(--yellow)">Día 7</a>) y <b>compararte con gente de internet</b>.',
+      '<b>La reacción que él propone:</b> como le pasó hoy, enfadarse (a él perder le enfada) y <b>cerrar el ordenador</b>: sale de sus cuentas y no hace nada más ese día, sin juzgar si la operación pudo ser mejor o peor.'
+    ]},
+
+    {t:'h2', text:'Perder es parte de la estadística', tape:'muestra'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s tec">Estrategia con ~71 % de aciertos en miles de operaciones (cifra de ejemplo)</span><span class="ar">→</span>
+        <span class="s fin">Todas cumplen los parámetros: son buenas operaciones</span><span class="ar">→</span>
+        <span class="s psi">~30 % pierden y no hay nada mal en ellas</span>
+      </div>
+      <div class="cap">Dice que son <b>10.000 buenas operaciones</b> de las que ~30 % fallan. Su cifra es inventada para explicarlo, no una estadística tuya ni suya.</div>`},
+    {t:'quote', text:'Siempre vas a tener algo en tu stop loss: si buscas por qué falló, siempre encuentras un motivo.', src:'Idea del vídeo (parafraseada)'},
+
+    {t:'h2', text:'No sobreanalices', tape:'la trampa'},
+    {t:'cards', items:[
+      {c:'c', ico:'📓', h:'La trampa de quien quiere mejorar', p:'Quien empieza y está obsesionado quiere <b>hacer más, mejorar siempre</b>. Si analizas todo (S&amp;P 500, Nasdaq, hora, condiciones) apuntas mejoras sin parar y acabas <b>haciendo ajustes que se contradicen</b> en tu estrategia.'},
+      {c:'y', ico:'⚖️', h:'Pesa a favor y en contra', p:'¿Tenías <b>ocho cosas a favor y dos en contra</b>? Era una buena operación: olvídala y no te estreses. Siempre habrá algo en contra.'}
+    ]},
+
+    {t:'h2', text:'Pregúntate: ¿qué haría mi yo de backtesting?', tape:'la herramienta'},
+    {t:'list', items:[
+      '<b>Backtesting</b> (lo verá más adelante): practicar tu estrategia desde casa, en cualquier día y año, <b>sin dinero real</b>. Dice que se pueden hacer 600 operaciones así.',
+      'Ahí <b>no sobreanalizas</b>: si cumple tus parámetros, disparas; si pierde, «siguiente día»; si gana, sigues. Tras unas semanas ves, por ejemplo, 5 pérdidas y 8 ganancias y un buen mes.',
+      'Con dinero real (evaluación, funded o propio) haces cosas que <b>no harías en backtesting</b>: alargar el take profit, analizar de más, llenar el diario, mirarlo todo cuatro veces, quedarte pegado al mercado tras perder. Es normal, porque hay dinero de por medio.',
+      '<b>La pregunta clave en ese momento:</b> «¿qué haría mi yo de backtesting?».'
+    ]},
+
+    {t:'h2', text:'Lo que sí es gambling', tape:'reglas'},
+    {t:'cards', items:[
+      {c:'c', ico:'🎰', h:'Aunque sigas el sistema…', p:'Dice que es <b>gambling</b>: desviarte de tu gestión de riesgo, operar <b>fuera de tu horario</b>, meter <b>más de una operación al día</b> o entrar en operaciones por tiempo. Hay que ser <b>muy estricto</b> con las reglas (ver <a href="#dia-12" style="color:var(--yellow)">Día 12</a>).'},
+      {c:'y', ico:'📉', h:'Habrá meses malos', p:'Puedes perder en un mes, estar mal psicológicamente y hacer operaciones terribles: «es parte de emprender». Te pasará y quizá no entiendas por qué.'}
+    ]},
+
+    {t:'h2', text:'Presión en directo', tape:'su caso'},
+    {t:'p', html:'Su primer directo operando acabó con su <b>primer stop delante de la gente</b>: dice que la presión se nota mucho, que se siente culpable porque la gente le copia aunque repita que no da señales, y que mañana lleva la presión de <b>no querer dos stops seguidos en directo</b>. Su plan: reflexionar esa tarde y mantener la calma.'},
+    {t:'p', cls:'detail', html:'<b>Lo que viene (su orden):</b> <b>condiciones y sponsorship</b>, luego <b>stop hunts, PO3 y AMD</b>, después <b>estrategia</b> y <b>backtesting</b>, y ya el paso a paso de la demo, cómo usar el backtesting, <b>cómo escalar</b> y qué cuentas fondeadas son mejores.'},
+
+    {t:'mine', id:'d24-perder', h:'¿Qué hago yo cuando pierdo?', lab:'Esto es tuyo', ph:'Mi última pérdida: ¿cerré, analicé de más, entré otra vez o lo dejé pasar?…',
+     hint:'Antes de dar vueltas a una pérdida, haz su cuenta: ¿cuántas cosas tenía a favor y cuántas en contra? Y pregúntate qué haría tu yo de backtesting.', pre:''},
+
+    {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, la cifra de dinero que perdió en directo, su situación y las quejas sobre la gente que le copia. Los porcentajes (71 %, 30 %, 10.000 operaciones, 5 y 8) son <b>ejemplos inventados</b>. En un tramo (≈ 2:24–2:34) la transcripción pierde palabras. Lo de «operaciones por tiempo» no queda claro en la traducción. Transcripción: traducción automática al inglés.'}
    ]}
 ];
 
-const TOTAL_DAYS = Math.max(23, ...DAYS.map(d=>d.id));
+const TOTAL_DAYS = Math.max(24, ...DAYS.map(d=>d.id));
 
 const GLOSSARY=[
  {t:'Acumulación', d:'El precio sube y baja sin ir a ningún sitio. Si el mercado se moviera siempre así, no avanzaría: es lo contrario de una tendencia.', days:[4], more:true},
@@ -1709,6 +1761,10 @@ const GLOSSARY=[
  {t:'Manipulación (del precio)', d:'El movimiento que sale a <b>cazar los stops</b> de quienes entran demasiado pronto, para luego moverse de verdad. Suele verse como un rango (acumulación) que se rompe con una mecha. Muy ligada a los stop hunts y al PO3, que explicará después.', days:[23,6]},
  {t:'IFVG del timeframe más alto de la ML', d:'Dentro de una manipulation leg, <b>manda el FVG de mayor timeframe</b> (30 s a 5 min; nada por encima de 5). No esperes el de 1 o 2 min si hay uno de 3: entras a mejor precio. Si falla, el precio puede irse sin ti: aun así, espera.', days:[23,13]},
  {t:'PO3 · AMD (pendiente)', d:'Alinearte con <b>el tiempo</b>. Solo menciona la A (acumulación) y la M (manipulación) y dice que lo explicará después, junto con los stop hunts, las condiciones y todos sus sistemas de entrada.', days:[23], more:true},
+ {t:'Un stop no es un error', d:'Con una estrategia de, por ejemplo, ~71 % de aciertos, ese ~30 % que pierde son <b>también buenas operaciones</b> que cumplen todos los parámetros: es parte de la estadística. «Siempre tendrás algo en tu stop loss»: si buscas un motivo, lo encuentras.', days:[24,20]},
+ {t:'Sobreanalizar', d:'Dar vueltas a cada detalle (S&amp;P 500, hora, condiciones) tras cada operación y apuntar mejoras sin parar: acabas con <b>ajustes que se contradicen</b>. La salida: pesar lo que tenías a favor y en contra (8 a favor y 2 en contra = buena operación) y seguir.', days:[24,5]},
+ {t:'Mi yo de backtesting', d:'Pregunta para cuando pierdes con dinero real: <b>«¿qué haría mi yo de backtesting?»</b>. Ahí no se sobreanaliza: si cumple los parámetros se dispara; si pierde, siguiente día. Con dinero real hacemos cosas distintas (alargar el TP, analizar de más, quedarnos pegados al mercado).', days:[24,9], more:true},
+ {t:'Gambling aunque sigas el sistema', d:'Según el Día 24: desviarte de tu gestión de riesgo, operar fuera de tu horario, meter más de una operación al día o entrar en operaciones por tiempo. Hay que ser muy estricto con las reglas.', days:[24,12]},
  {t:'Revenge trading', d:'Arriesgar más de la cuenta (overlotting) o sobreoperar (overtrading) tras perder, para recuperar. Casi siempre acaba con más pérdida o con la cuenta quemada. <b>Nada externo lo evita: solo tú.</b>', days:[14]},
  {t:'Jugar con el beneficio', d:'"Voy a jugar con lo que he ganado hoy": arriesgas el profit del día. Para él, <b>una mentira histórica</b>: si lo pierdes, quieres recuperarlo y quemas la cuenta.', days:[14]},
  {t:'Plan de riesgo', d:'Un riesgo fijo por trade y por día (su ejemplo: 300 $). La cuenta dura varios días y te mantiene tranquilo. Subirlo tras perder es el revenge trading.', days:[14,9], more:true},
@@ -1784,11 +1840,11 @@ const SISTEMA=[
  {n:7,h:'Elegir el objetivo',st:'part',p:'Liquidez objetivo (BSL/SSL, LRL, equal highs/lows). Cuenta los puntos de liquidez <b>a favor y en contra</b>. Su «draw on liquidity» es el high o low que quieres que el precio barra ese día (p. ej. un FVG sin tocar arriba); cómo elegir entre varios lo explicará con las condiciones.',days:[21,15,11]},
  {n:8,h:'Stop, riesgo y tamaño',st:'part',p:'Aún no ha explicado qué riesgo asumir ni cómo escalar con prop firms (lo promete tras la estrategia). Sí ha dado una regla de gestión (Día 22): <b>una vez dentro no tocas nada</b>, y el break even solo se mueve cuando el precio llega a un <b>key level</b>, no por dólares ni emociones. Cuál nivel y cuándo lo detallará después.',days:[22]},
  {n:9,h:'Filtro antes de entrar',st:'ok',p:'«Si pierdo este trade, ¿me voy a enfadar?» Si sí, no entres. Y la pregunta clave: ¿está siguiendo tu plan?',days:[18,12]},
- {n:10,h:'Si algo sale mal',st:'ok',p:'Un fallo puntual es error humano; el problema es la cadena de reglas rotas y el revenge trading. Tras mala racha, parar unos días.',days:[14,16,20]}
+ {n:10,h:'Si algo sale mal',st:'ok',p:'Un fallo puntual es error humano; el problema es la cadena de reglas rotas y el revenge trading. Tras mala racha, parar unos días. Tras un stop no analices cada detalle: pesa <b>lo que tenías a favor y en contra</b> y pregúntate qué haría tu yo de backtesting.',days:[24,14,16,20]}
 ];
 const SIS_ST={ok:{i:'✅',n:'Explicado',c:'c-m'},part:{i:'🟡',n:'A medias',c:'c-y'},no:{i:'⏳',n:'Aún no lo ha explicado',c:'c-c'}};
 
-const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',dol:'zcT31zmE5Uc'};
+const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',d24:'9QkzkdspTko',dol:'zcT31zmE5Uc'};
 const DUDAS=[
  {id:'smt',st:'ver',h:'¿Cuánto usa él los SMT?',q:'En el Día 13 parecía decir que los usa muy poco (en el audio salían como «SIDs»), y en el Día 17 dice que la true manipulation es obligatoria. Puede ser un fallo de la traducción automática.',how:'Escuchar el Día 13 en español cuando habla de los SMT y el Día 17 desde 9:48.',days:[13,17],links:[['Día 17 · «no todos los SMT son válidos»',YT.d17,588]]},
  {id:'fib',st:'ver',h:'Configuración exacta del Fibonacci',q:'Dice que copies su configuración de la pantalla, pero la transcripción no recoge los valores (niveles, colores, el 0.5).',how:'Pausar el Día 19 al principio y copiar los ajustes del Fibonacci.',days:[19,2],links:[['Día 19 · «copy these settings»',YT.d19,37]]},
@@ -1805,6 +1861,7 @@ const DUDAS=[
  {id:'be22',st:'esp',h:'Cuándo mover a break even',q:'Dice que solo se mueve cuando el precio llega a un key level (zona de conflicto), no por dólares ni emociones, pero no explica qué nivel ni cómo.',how:'Esperar a que lo explique. Es parte del paso 8 de «Mi sistema».',days:[22],links:[['Día 22 · break even demasiado pronto',YT.d22,650]]},
  {id:'cifra22',st:'ver',h:'La cifra de operaciones que llegan al objetivo',q:'Al hablar de cerrar antes del objetivo dice cuántas de 1.200 operaciones llegarían al objetivo, pero la traducción no lo deja claro y pierde las palabras stop loss y take profit.',how:'Escuchar el Día 22 en español desde 12:24 y comprobar qué dice exactamente.',days:[22],links:[['Día 22 · «no tocas nada»',YT.d22,744]]},
  {id:'ml23',st:'ver',h:'Qué swing marcar como manipulation leg',q:'Dice que no cojas el high más alto sino el más reciente, y que otra barrida crea una ML nueva y la anterior puede dejar de valer. Es visual, y en el primer ejemplo la transcripción se vuelve confusa.',how:'Ver el Día 23 de 5:37 a 10:50 con el gráfico delante y dibujar tú la ML.',days:[23],links:[['Día 23 · cómo identificar la ML',YT.d23,337],['Día 23 · nueva ML tras otra barrida',YT.d23,562]]},
- {id:'resto23',st:'esp',h:'Lo que le queda por explicar de la estrategia',q:'Stop hunts (relacionados con la ML, no iguales), condiciones, PO3 / AMD, todos sus sistemas de entrada y sponsorship. Luego un vídeo largo con la estrategia entera y uno o dos de backtesting; también escalar y qué profit usar.',how:'Esperar. Completan los pasos 2, 6, 7 y 8 de «Mi sistema».',days:[23],links:[['Día 23 · lo que queda',YT.d23,18]]}
+ {id:'resto23',st:'esp',h:'Lo que le queda por explicar de la estrategia',q:'Stop hunts (relacionados con la ML, no iguales), condiciones, PO3 / AMD, todos sus sistemas de entrada y sponsorship. Luego un vídeo largo con la estrategia entera y uno o dos de backtesting; también escalar y qué profit usar.',how:'Esperar. Completan los pasos 2, 6, 7 y 8 de «Mi sistema».',days:[23],links:[['Día 23 · lo que queda',YT.d23,18]]},
+ {id:'gamb24',st:'ver',h:'Qué es gambling según el Día 24',q:'Dice que es gambling salirte del riesgo, operar fuera de horario, meter más de una operación al día o entrar en operaciones «por tiempo». La traducción deja dudas sobre esto último y sobre si «más de una al día» es una regla estricta o una pauta.',how:'Escuchar el Día 24 desde 7:30 y comprobar las palabras exactas.',days:[24],links:[['Día 24 · lo que es gambling',YT.d24,451]]}
 ];
 const DU_ST={ver:{i:'🔎',n:'Verificar en el vídeo',c:'c-y'},esp:{i:'⏳',n:'Lo explicará él',c:'c-b'},no:{i:'🚫',n:'Él decidió no explicarlo',c:'c-c'}};
