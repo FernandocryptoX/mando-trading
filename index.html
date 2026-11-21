@@ -209,7 +209,7 @@ const uid=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2800);}
 
 /* ============ catálogos ============ */
-const SETUPS=['Key level','BSL tomado','SSL tomado','FVG 15m','FVG 5m','IFVG','Liquidez a favor','Baja resistencia','Sesgo a favor','CISD','Order block','Noticia'];
+const SETUPS=['Key level','BSL tomado','SSL tomado','FVG 15m','FVG 5m','IFVG','Liquidez a favor','Baja resistencia','Sesgo a favor','Manipulation leg','CISD','Order block','Noticia'];
 const EMOS=[['Calma','good'],['Confianza','good'],['Duda','neu'],['Aburrimiento','neu'],['Miedo','bad'],['Prisa','bad'],['Avaricia','bad'],['Venganza','bad']];
 const EMO_TONE=Object.fromEntries(EMOS);
 const ERRS=['Entré sin setup','Moví el stop','Sobreoperé','Cerré antes de tiempo','Aguanté de más','Tamaño excesivo','Entré tarde','Operé tras pérdida'];
@@ -554,9 +554,18 @@ function copyData(full){
   const fallback=()=>{dialog('<h2 style="font-size:28px">Copia este texto</h2><p class="small muted">Selecciónalo todo (Ctrl+A dentro del cuadro) y cópialo (Ctrl+C).</p><textarea id="cpTxt" readonly style="width:100%;min-height:160px;background:var(--page2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:12px monospace">'+esc(txt)+'</textarea>',[{label:'Cerrar'}]);const t=document.getElementById('cpTxt');if(t){t.focus();t.select();}};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast('Copiado. Pégalo en el chat con Ctrl+V')).catch(fallback);else fallback();
 }
+/* une sin borrar nada: añade solo las operaciones y las cuentas que aún no existen (por id) */
+function mergeData(o){
+  let nt=0,na=0;
+  Object.values((o&&o.trades)||{}).forEach(t=>{if(t&&t.id&&!t.del&&!S.trades[t.id]){putTrade(clean(t));nt++;}});
+  const A=accData(),inc=(((o||{}).cfg||{}).acc||{}).list||[];
+  inc.forEach(a=>{if(a&&a.id&&!A.list.some(x=>x.id===a.id)){A.list.push(Object.assign({hist:[],payouts:[],fees:[]},clean(a)));na++;}});
+  if(na)saveCfg();
+  return{nt,na};
+}
 function askReplace(o,what){
-  dialog('<h2 style="font-size:28px">'+what+'</h2><p>Esto <b>reemplaza todos los datos que tienes ahora</b> en este navegador (operaciones, cuentas, notas, repaso). No se puede deshacer. Si dudas, descarga antes una copia.</p>',
-    [{label:'Cancelar'},{label:'Reemplazar',primary:true,run:()=>{applyData(o);render();toast('Datos cargados');}}]);
+  dialog('<h2 style="font-size:28px">'+what+'</h2><p><b>Unir</b> añade solo las operaciones y cuentas que aún no tienes y <b>no borra nada</b>. <b>Reemplazar</b> sustituye todos los datos que tienes ahora (operaciones, cuentas, notas, repaso) y no se puede deshacer.</p>',
+    [{label:'Cancelar'},{label:'Reemplazar',run:()=>{applyData(o);render();toast('Datos cargados');}},{label:'Unir sin borrar',primary:true,run:()=>{const r=mergeData(o);render();toast('Añadidas '+r.nt+' operaciones y '+r.na+' cuentas');}}]);
 }
 function confirmSeed(){
   fetch('datos/semilla.json').then(r=>{if(!r.ok)throw 0;return r.json();}).then(j=>askReplace(j,'Cargar mis datos iniciales')).catch(()=>toast('No encuentro datos/semilla.json (hay que abrir la app desde su servidor)'));

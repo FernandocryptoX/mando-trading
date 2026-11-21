@@ -1200,7 +1200,7 @@ const DAYS = [
       <div class="cap">Quedan <b>solo dos conceptos técnicos</b> (equilibrium y SMTs) y pocos vídeos de psicología. Después: <b>cómo hacer backtesting, cómo usar una demo y el paso a paso</b>. Ahí es donde encajará la zona de <b>Registro</b> de esta libreta.</div>`},
 
     {t:'mine', id:'d16-racha', h:'¿En qué racha estoy yo?', lab:'Esto es tuyo', ph:'Cómo ha sido mi última semana: ¿roca o rompiendo reglas? ¿Qué me dice eso sobre si toca parar unos días…',
-     hint:'Tu punto débil es la constancia. Escribe cómo ibas tú esta semana en psicología; sin juicio, solo para verlo.', pre:''},
+     hint:'Escribe cómo ibas tú esta semana en psicología; sin juicio, solo para verlo.', pre:''},
 
     {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> las bromas, el viaje en coche, el repaso de los comentarios, y sus datos personales de rendimiento (cuentas, riesgo): son su situación. Le piden en los comentarios <b>equilibrium, cómo pasar cuentas y qué prop firm es mejor</b>: dice que lo explicará todo, <b>paso a paso</b>, tras los conceptos. Nada de eso está contado aún. Transcripción: traducción automática al inglés.'}
    ]},
@@ -1606,9 +1606,76 @@ const DAYS = [
 
     {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los comentarios concretos de internet, las anécdotas personales, la pantalla con sus cuentas y las cifras de retiradas y gastos del mes (son su caso, no una referencia para ti), sus planes de vídeos y el adelanto de contenidos. Los números del ejemplo (500 $, 105 $, 1.000 $) son suyos. Transcripción: traducción automática al inglés; <b>pierde palabras clave</b> y no se entiende la cifra que da sobre cuántas operaciones llegan al objetivo, así que no la apunté.'}
    ]},
+
+ { id:23, title:'Manipulation legs', tags:['tec'], mins:20, status:'done',
+   intro:'Segunda parte de los IFVG: cómo localizar una manipulation leg y cuál es el FVG que debes esperar dentro de ella. Los esquemas son míos; los ejemplos son de su pantalla en directo (sin fecha ni instrumento).',
+   blocks:[
+    {t:'idea', text:'Una <span class="mk">manipulation leg (ML)</span> es el tramo <span class="mk">del swing high al swing low</span> del movimiento que barrió el último low (o al revés). Dentro de ella buscas el FVG del <span class="mk">timeframe más alto</span> y entras cuando se invierte (IFVG).'},
+
+    {t:'h2', text:'Qué es manipular', tape:'la idea'},
+    {t:'p', html:'Recuerda la liquidez (<a href="#dia-6" style="color:var(--yellow)">Día 6</a>): el precio toca un key level, muchos compran y ponen su stop debajo, y las instituciones <b>van a por esos stops</b> para entrar a mejor precio. Ese movimiento se llama <b>manipulación</b>.'},
+    {t:'cards', items:[
+      {c:'c', ico:'🪤', h:'Manipulación', p:'El movimiento que sale a cazar los stops de quienes entran <b>demasiado pronto</b>. Suele verse así: acumulación en un rango, el precio <b>sale del rango</b> (una mecha), y luego se mueve de verdad.'},
+      {c:'y', ico:'📏', h:'Manipulation leg (ML)', p:'Del <b>swing high al swing low</b> del movimiento que tomó el último low (en ventas, al revés). Según el timeframe verás más o menos. <b>No busques el high más alto: el más reciente.</b>'},
+      {c:'b', ico:'🔗', h:'Con qué se relaciona', p:'Está muy ligada a los <b>stop hunts</b> (no son lo mismo) y al <b>PO3</b> (alinearte con el tiempo). Dice que en su estrategia hace falta <b>casi siempre una manipulación</b>. Ambos los explicará después.'}
+    ]},
+
+    {t:'h2', text:'Cómo se usa con el IFVG', tape:'paso a paso'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s tec">1 · Estás en un key level y se barre un low (si buscas compras)</span><span class="ar">→</span>
+        <span class="s tec">2 · Marca la ML: swing high reciente → swing low</span><span class="ar">→</span>
+        <span class="s tec">3 · Mira si hay FVG en 5, 3, 2, 1 min y 30 s dentro de ella</span><span class="ar">→</span>
+        <span class="s tec">4 · Elige el de mayor timeframe</span><span class="ar">→</span>
+        <span class="s fin">5 · Espera su IFVG (cierre al otro lado) y entras</span>
+      </div>
+      <div class="cap">Lógica: un FVG bajista mantiene el precio bajando; si el precio lo <b>invalida</b>, te dice que quiere subir. Y si el FVG de timeframe más alto en contra ya no existe, <b>no queda nada superior que pueda frenarte</b>.</div>`},
+    {t:'cards', items:[
+      {c:'m', ico:'👑', h:'El timeframe más alto manda', p:'Si hay un FVG de 3 min en la ML, <b>no esperes el de 2 min ni el de 1 min</b>: entrarás mejor. Y no se usa nada por encima de <b>5 minutos</b>.'},
+      {c:'c', ico:'🔁', h:'Nueva barrida, nueva ML', p:'Cada vez que se toma otro low en un key level hay <b>una ML nueva</b>, y las anteriores pueden dejar de valer (en un ejemplo, en 3 min ya no había swing, solo mechas).'},
+      {c:'y', ico:'⚙️', h:'Dos opciones', p:'Esperar el IFVG del timeframe alto de la ML anterior, o (si tienes experiencia o convicción) tomar el del <b>nuevo timeframe de la nueva ML</b>.'}
+    ]},
+
+    {t:'h2', text:'Sus tres ejemplos', tape:'en directo'},
+    {t:'list', items:[
+      '<b>Compras, rango y mecha:</b> acumulación, barre un low con una mecha. En 5 min la ML <b>no tiene FVG</b>; en 3 min sí (nuevo high, mismo low) → esperas ese IFVG. En 2 y 1 min también hay FVG, pero <b>entrarías en el de 3</b>. Esa parte de la transcripción es confusa: revísala en el vídeo.',
+      '<b>Compras en key level:</b> el precio está en un FVG de 15 min y de 30 min. Mini acumulación, se barre el low. En 5 y 3 min no se ha formado el FVG aún; en 2 min sí: <b>cierra por encima y entras</b>, con su 1:1 → take profit. No había FVG de 3 min en contra: no hay motivo para que vuelva a cazar el stop.',
+      '<b>Compras, low de 5 min dentro de un FVG de 15:</b> sale del rango y barra el stop. En 2 min hay low y high; en 3 min low y FVG; en 5 min low y FVG → <b>esperas el de 5 min</b> y sube. Dice que es «literalmente el dibujo del principio».'
+    ]},
+    {t:'p', cls:'detail', html:'No es siempre: debe estar <b>en un key level</b> y acompañado de <b>tiempo</b> (lo verá después). Cuantas más cosas juntes (equilibrium, SMT, ML, IFVG), más probabilidades.'},
+    {t:'quote', text:'Espera siempre el IFVG del timeframe más alto de la manipulation leg, aunque a veces el precio se vaya sin ti.', src:'Idea del vídeo (parafraseada)'},
+
+    {t:'h2', text:'Su aviso', tape:'frustración'},
+    {t:'cards', items:[
+      {c:'c', ico:'😤', h:'Te va a molestar', p:'Esperas el de 3 min, el de 1 min se invierte y el precio llega al TP <b>antes de darte entrada</b>. Aun así recomienda seguir esperando el del timeframe más alto.'},
+      {c:'b', ico:'🧠', h:'Por qué él no siempre lo hace', p:'Con su nivel tiene una <b>convicción y discreción</b> que le hace priorizar el <b>draw on liquidity</b> y el PO3. Tú, de momento, céntrate en el timeframe alto y ya desarrollarás la tuya.'}
+    ]},
+
+    {t:'h2', text:'Tu tarea', tape:'su tarea'},
+    {t:'list', items:[
+      'Identifica <b>cinco manipulation legs</b> marcando el swing high y el swing low.',
+      'En cada una, <b>espera e identifica el FVG del timeframe más alto</b> dentro de ella.',
+      'Si además lo alineas con un <b>key level y liquidez</b>, «eres de los mejores».'
+    ]},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s tec">Stop hunts</span><span class="ar">+</span>
+        <span class="s tec">Condiciones</span><span class="ar">+</span>
+        <span class="s tec">PO3 / AMD</span><span class="ar">+</span>
+        <span class="s tec">Sistemas de entrada</span><span class="ar">+</span>
+        <span class="s tec">Sponsorship</span><span class="ar">→</span>
+        <span class="s fin">Estrategia completa y backtesting</span>
+      </div>
+      <div class="cap">Dice que quedan <b>cinco cosas</b> (más el «sponsorship») y que calcula <b>unos 15–20 días</b> de bootcamp. Luego juntará todo en un vídeo largo y hará <b>uno o dos de backtesting</b>; también explicará <b>cómo escalar y qué profit usar</b>.</div>`},
+
+    {t:'mine', id:'d23-ml', h:'Mis 5 manipulation legs', lab:'Esto es tuyo', ph:'Fecha y hora, qué low barrió, timeframe de la ML y FVG que elegí…',
+     hint:'Compara con tus operaciones del diario: ¿hubo barrida y ML? ¿Esperaste el IFVG del timeframe alto?', pre:''},
+
+    {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, sus quejas por la duración del bootcamp, su cansancio y las dudas sobre si lo explica bien. En la transcripción hay horas del reloj del gráfico que no se pueden usar (y el primer ejemplo se entiende mal sin verlo). No dice el instrumento ni la fecha de los ejemplos. <b>«Sponsorship» lo menciona como pendiente</b> y no lo define. Transcripción: traducción automática al inglés.'}
+   ]}
 ];
 
-const TOTAL_DAYS = Math.max(21, ...DAYS.map(d=>d.id));
+const TOTAL_DAYS = Math.max(23, ...DAYS.map(d=>d.id));
 
 const GLOSSARY=[
  {t:'Acumulación', d:'El precio sube y baja sin ir a ningún sitio. Si el mercado se moviera siempre así, no avanzaría: es lo contrario de una tendencia.', days:[4], more:true},
@@ -1638,6 +1705,10 @@ const GLOSSARY=[
  {t:'FVG sin tocar (unfilled)', d:'Un FVG que <b>nunca ha sido visitado</b> por el precio. Arriba de una tendencia alcista es un buen objetivo para las compras.', days:[21]},
  {t:'No operar contra el timeframe alto', d:'«No digo nunca, pero la gran mayoría de las veces.» Cuanto mayor el timeframe, más fuerza; el precio es fractal; y las velas grandes de un timeframe bajo engañan. Si el análisis falla (cae fuerte con cierres fuertes), <b>ese día no se opera</b>.', days:[21]},
  {t:'Plantillas de línea (TradingView)', d:'Dibuja una línea, ponle texto en los ajustes y guarda con <b>plantilla → guardar como</b>. Cada línea nueva con esa plantilla muestra ya el texto (BSL, SMT…): marcar es mucho más rápido.', days:[21,2]},
+ {t:'Manipulation leg (ML)', d:'El tramo <b>del swing high al swing low</b> (el más reciente, no el más alto) del movimiento que <b>barrió el último low</b> en un key level (en ventas, al revés). Dentro de ella buscas el FVG del <b>timeframe más alto</b> (hasta 5 min) y entras con su IFVG. Una nueva barrida crea una ML nueva.', days:[23], more:true},
+ {t:'Manipulación (del precio)', d:'El movimiento que sale a <b>cazar los stops</b> de quienes entran demasiado pronto, para luego moverse de verdad. Suele verse como un rango (acumulación) que se rompe con una mecha. Muy ligada a los stop hunts y al PO3, que explicará después.', days:[23,6]},
+ {t:'IFVG del timeframe más alto de la ML', d:'Dentro de una manipulation leg, <b>manda el FVG de mayor timeframe</b> (30 s a 5 min; nada por encima de 5). No esperes el de 1 o 2 min si hay uno de 3: entras a mejor precio. Si falla, el precio puede irse sin ti: aun así, espera.', days:[23,13]},
+ {t:'PO3 · AMD (pendiente)', d:'Alinearte con <b>el tiempo</b>. Solo menciona la A (acumulación) y la M (manipulación) y dice que lo explicará después, junto con los stop hunts, las condiciones y todos sus sistemas de entrada.', days:[23], more:true},
  {t:'Revenge trading', d:'Arriesgar más de la cuenta (overlotting) o sobreoperar (overtrading) tras perder, para recuperar. Casi siempre acaba con más pérdida o con la cuenta quemada. <b>Nada externo lo evita: solo tú.</b>', days:[14]},
  {t:'Jugar con el beneficio', d:'"Voy a jugar con lo que he ganado hoy": arriesgas el profit del día. Para él, <b>una mentira histórica</b>: si lo pierdes, quieres recuperarlo y quemas la cuenta.', days:[14]},
  {t:'Plan de riesgo', d:'Un riesgo fijo por trade y por día (su ejemplo: 300 $). La cuenta dura varios días y te mantiene tranquilo. Subirlo tras perder es el revenge trading.', days:[14,9], more:true},
@@ -1708,7 +1779,7 @@ const SISTEMA=[
  {n:2,h:'Sesgo diario: compras o ventas',st:'part',p:'15 min antes de abrir (≈ 15:20 España): diario → 4 h → 1 h, ¿qué hace el precio?, ¿qué invalido y qué respeto?, ¿dónde están los key levels? Buscas <b>a favor del timeframe alto</b>; si el análisis falla, ese día no operas. Las «condiciones» (cuándo revierte o continúa) las verá después.',days:[21,19]},
  {n:3,h:'Elegir el FVG con el equilibrium',st:'ok',p:'Dibuja el rango (swing high/low de 5 min). <b>Comprar solo en descuento, vender solo en premium</b>, y mejor con el FVG alineado con el 50 %.',days:[19]},
  {n:4,h:'Esperar a que toque la zona',st:'ok',p:'Primero toca el nivel, luego aparece el IFVG. Un IFVG <b>antes</b> de tocar, o con liquidez en contra, es entrada temprana: «el precio no se va sin ti».',days:[15]},
- {n:5,h:'Confirmar con el IFVG',st:'ok',p:'El IFVG es la confirmación y es donde entras. Solo de <b>30 s a 5 min</b>, nunca de 15.',days:[13]},
+ {n:5,h:'Confirmar con el IFVG',st:'ok',p:'El IFVG es la confirmación y es donde entras. Solo de <b>30 s a 5 min</b>, nunca de 15. Con la <b>manipulation leg</b>: tras barrer un low en el key level, marca la ML y espera el IFVG del <b>FVG de mayor timeframe</b> dentro de ella.',days:[23,13]},
  {n:6,h:'Reforzar con SMT y true manipulation',st:'part',p:'Opcional: un SMT en el key level mejora el trade, pero solo vale si <b>los dos índices están en sitio de distribuir</b>. Para él la true manipulation es obligatoria.',days:[17]},
  {n:7,h:'Elegir el objetivo',st:'part',p:'Liquidez objetivo (BSL/SSL, LRL, equal highs/lows). Cuenta los puntos de liquidez <b>a favor y en contra</b>. Su «draw on liquidity» es el high o low que quieres que el precio barra ese día (p. ej. un FVG sin tocar arriba); cómo elegir entre varios lo explicará con las condiciones.',days:[21,15,11]},
  {n:8,h:'Stop, riesgo y tamaño',st:'part',p:'Aún no ha explicado qué riesgo asumir ni cómo escalar con prop firms (lo promete tras la estrategia). Sí ha dado una regla de gestión (Día 22): <b>una vez dentro no tocas nada</b>, y el break even solo se mueve cuando el precio llega a un <b>key level</b>, no por dólares ni emociones. Cuál nivel y cuándo lo detallará después.',days:[22]},
@@ -1717,7 +1788,7 @@ const SISTEMA=[
 ];
 const SIS_ST={ok:{i:'✅',n:'Explicado',c:'c-m'},part:{i:'🟡',n:'A medias',c:'c-y'},no:{i:'⏳',n:'Aún no lo ha explicado',c:'c-c'}};
 
-const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8'};
+const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',dol:'zcT31zmE5Uc'};
 const DUDAS=[
  {id:'smt',st:'ver',h:'¿Cuánto usa él los SMT?',q:'En el Día 13 parecía decir que los usa muy poco (en el audio salían como «SIDs»), y en el Día 17 dice que la true manipulation es obligatoria. Puede ser un fallo de la traducción automática.',how:'Escuchar el Día 13 en español cuando habla de los SMT y el Día 17 desde 9:48.',days:[13,17],links:[['Día 17 · «no todos los SMT son válidos»',YT.d17,588]]},
  {id:'fib',st:'ver',h:'Configuración exacta del Fibonacci',q:'Dice que copies su configuración de la pantalla, pero la transcripción no recoge los valores (niveles, colores, el 0.5).',how:'Pausar el Día 19 al principio y copiar los ajustes del Fibonacci.',days:[19,2],links:[['Día 19 · «copy these settings»',YT.d19,37]]},
@@ -1727,11 +1798,13 @@ const DUDAS=[
  {id:'riesgo',st:'esp',h:'Stop, riesgo y tamaño de posición',q:'Es lo más importante para operar y no lo ha explicado. Lo promete tras la estrategia (qué riesgo asumir y escalar con prop firms).',how:'Esperar. Es el paso 8 de «Mi sistema».',days:[20],links:[['Día 20 · lo que viene',YT.d20,659]]},
  {id:'bias',st:'esp',h:'Las «condiciones» del sesgo y las sesiones',q:'El Día 21 explica el sesgo y el draw on liquidity, pero deja para después las «condiciones» (cuándo el precio revierte o continúa, qué hacer en un día de conflicto) y un vídeo de sesiones (Asia, Londres, Nueva York).',how:'Esperar. Completan los pasos 2 y 7 de «Mi sistema».',days:[21],links:[['Día 21 · «aquí entran las condiciones»',YT.d21,975]]},
  {id:'hora21',st:'ver',h:'¿A qué hora haces el análisis previo?',q:'Dice 10–15 minutos antes (9:20 NY = 15:20 España), pero en su demo marca las 9:00 y en la tarea te pide mirar a las 9:00.',how:'Escuchar el Día 21 en esos dos puntos y decidir tu hora (o preguntarle).',days:[21],links:[['Día 21 · «unos 15 min antes»',YT.d21,293],['Día 21 · la tarea a las 9:00',YT.d21,1790]]},
- {id:'prev21',st:'ver',h:'Su vídeo anterior sobre daily bias y DOL',q:'Recomienda verlo («mismo concepto con otros ejemplos») y lo deja en la descripción del Día 21. No pude leer la descripción.',how:'Abrir la descripción del Día 21 en YouTube y apuntar el enlace.',days:[21],links:[['Día 21 · su recomendación',YT.d21,265]]},
+ {id:'prev21',st:'ver',h:'Su vídeo anterior sobre daily bias y DOL',q:'Recomienda verlo («mismo concepto con otros ejemplos»). Ya encontré el enlace en la descripción del Día 21 («Video DOL extra»), que empieza en el minuto 9:24. No he podido leer ese vídeo.',how:'Verlo desde el enlace (abre el vídeo en el minuto indicado) y, si aporta algo, decirme y lo añado.',days:[21],links:[['Vídeo «DOL extra» de su descripción',YT.dol,564],['Día 21 · su recomendación',YT.d21,265]]},
  {id:'doble',st:'no',h:'Doble SMT, breakaway gaps y cuándo no hace falta true manipulation',q:'Dice que no los explicará porque no los usa ni los domina. Es decisión suya; si te interesan, habría que buscarlos en otro sitio.',how:'Nada que hacer ahora. Decidir más adelante si te importa.',days:[17],links:[['Día 17 · por qué no los explica',YT.d17,1247]]},
  {id:'es15',st:'ver',h:'Días 1–5 contrastados con el audio en español',q:'Esos días se apuntaron con un pase más ligero. Y todo lo demás viene de la traducción automática al inglés, así que algún matiz puede haberse perdido.',how:'Cuando haya cupo, bajar los subtítulos en español y contrastarlos con los apuntes.',days:[1,2,3,4,5],links:[]},
  {id:'d5',st:'ver',h:'¿El Día 5 es de psicología?',q:'El vídeo se titula «Time» pero el contenido es sobre no sobreaprender. Confírmalo tú al verlo.',how:'Mirar la parte donde habla del tiempo en el Día 5.',days:[5],links:[]},
  {id:'be22',st:'esp',h:'Cuándo mover a break even',q:'Dice que solo se mueve cuando el precio llega a un key level (zona de conflicto), no por dólares ni emociones, pero no explica qué nivel ni cómo.',how:'Esperar a que lo explique. Es parte del paso 8 de «Mi sistema».',days:[22],links:[['Día 22 · break even demasiado pronto',YT.d22,650]]},
- {id:'cifra22',st:'ver',h:'La cifra de operaciones que llegan al objetivo',q:'Al hablar de cerrar antes del objetivo dice cuántas de 1.200 operaciones llegarían al objetivo, pero la traducción no lo deja claro y pierde las palabras stop loss y take profit.',how:'Escuchar el Día 22 en español desde 12:24 y comprobar qué dice exactamente.',days:[22],links:[['Día 22 · «no tocas nada»',YT.d22,744]]}
+ {id:'cifra22',st:'ver',h:'La cifra de operaciones que llegan al objetivo',q:'Al hablar de cerrar antes del objetivo dice cuántas de 1.200 operaciones llegarían al objetivo, pero la traducción no lo deja claro y pierde las palabras stop loss y take profit.',how:'Escuchar el Día 22 en español desde 12:24 y comprobar qué dice exactamente.',days:[22],links:[['Día 22 · «no tocas nada»',YT.d22,744]]},
+ {id:'ml23',st:'ver',h:'Qué swing marcar como manipulation leg',q:'Dice que no cojas el high más alto sino el más reciente, y que otra barrida crea una ML nueva y la anterior puede dejar de valer. Es visual, y en el primer ejemplo la transcripción se vuelve confusa.',how:'Ver el Día 23 de 5:37 a 10:50 con el gráfico delante y dibujar tú la ML.',days:[23],links:[['Día 23 · cómo identificar la ML',YT.d23,337],['Día 23 · nueva ML tras otra barrida',YT.d23,562]]},
+ {id:'resto23',st:'esp',h:'Lo que le queda por explicar de la estrategia',q:'Stop hunts (relacionados con la ML, no iguales), condiciones, PO3 / AMD, todos sus sistemas de entrada y sponsorship. Luego un vídeo largo con la estrategia entera y uno o dos de backtesting; también escalar y qué profit usar.',how:'Esperar. Completan los pasos 2, 6, 7 y 8 de «Mi sistema».',days:[23],links:[['Día 23 · lo que queda',YT.d23,18]]}
 ];
 const DU_ST={ver:{i:'🔎',n:'Verificar en el vídeo',c:'c-y'},esp:{i:'⏳',n:'Lo explicará él',c:'c-b'},no:{i:'🚫',n:'Él decidió no explicarlo',c:'c-c'}};
