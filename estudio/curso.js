@@ -1724,10 +1724,127 @@ const DAYS = [
      hint:'Antes de dar vueltas a una pérdida, haz su cuenta: ¿cuántas cosas tenía a favor y cuántas en contra? Y pregúntate qué haría tu yo de backtesting.', pre:''},
 
     {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, la cifra de dinero que perdió en directo, su situación y las quejas sobre la gente que le copia. Los porcentajes (71 %, 30 %, 10.000 operaciones, 5 y 8) son <b>ejemplos inventados</b>. En un tramo (≈ 2:24–2:34) la transcripción pierde palabras. Lo de «operaciones por tiempo» no queda claro en la traducción. Transcripción: traducción automática al inglés.'}
+   ]},
+
+ { id:25, title:'Condiciones y sponsorship', tags:['tec'], mins:22, status:'done',
+   intro:'Según él, el vídeo más importante del bootcamp: cómo alinear las temporalidades con «condiciones» y qué es un gap «esponsoreado». Leído del español original (subtítulos automáticos de YouTube), que a veces se come los números de las temporalidades. Los esquemas son míos; los ejemplos, de su pantalla.',
+   blocks:[
+    {t:'idea', text:'Una <span class="mk">condición</span> es un «si pasa esto, haré esto» que te pones cuando <span class="mk">no sabes qué va a hacer el precio</span>. No predices: <span class="mk">escuchas lo que el precio te dice</span>.'},
+
+    {t:'h2', text:'Tres pasos', tape:'cómo se alinean'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s tec">1 · Afirmaciones: 1 d, 4 h, 1 h (antes de abrir)</span><span class="ar">→</span>
+        <span class="s tec">2 · Condiciones: FVG de 5 min (a veces 15)</span><span class="ar">→</span>
+        <span class="s fin">3 · Ejecución: IFVG de la temporalidad más alta de la manipulation leg</span>
+      </div>
+      <div class="cap">Los pasos 2 y 3 se hacen ya con el mercado abierto. «Tranquilos, la estrategia se verá mucho mejor.»</div>`},
+    {t:'cards', items:[
+      {c:'b', ico:'🔭', h:'1 · Afirmaciones', p:'Lo del <a href="#dia-21" style="color:var(--yellow)">Día 21</a>: daily bias, draw on liquidity, narrativa y la tendencia. En gráficos de <b>diario, 4 h y 1 h</b> marcas altos y bajos, FVG alcistas y bajistas, y los posibles <b>key levels</b>.'},
+      {c:'y', ico:'❓', h:'2 · Condiciones', p:'La temporalidad intermedia: los <b>FVG de 5 min</b> (y a veces de 15) se usan como condición. Ejemplo: «si toca el key level y cierra por debajo del gap (IFVG) → ventas; si lo respeta y sigue subiendo → compras».'},
+      {c:'m', ico:'🎯', h:'3 · Ejecución', p:'Solo IFVG, y <b>el de la temporalidad más alta de la manipulation leg</b> (<a href="#dia-23" style="color:var(--yellow)">Día 23</a>), de 30 s a 5 min.'}
+    ]},
+
+    {t:'h2', text:'Para qué sirven', tape:'la idea'},
+    {t:'list', items:[
+      '<b>Saber si un key level aguantará.</b> El mercado sube y baja y no respeta siempre las zonas: es la respuesta a «cuándo aguanta un key level» que dejó para más adelante. Lo sabes <b>cuando el mercado abre</b>, no antes. Por eso muchas veces no tienes daily bias.',
+      '<b>Psicología.</b> En vez de ir reactivo y nervioso detrás de una vela grande, <b>preparas el cerebro para dos escenarios</b>: «si pasa A, vendo; si pasa B, busco compras».',
+      '<b>Si el precio respeta el gap de la condición</b>, te confirma la continuación; <b>si lo invalida con fuerza</b>, tienes key level tocado + IFVG + objetivos al otro lado: entras.'
+    ]},
+
+    {t:'h2', text:'Sus ejemplos (de ese día)', tape:'en directo'},
+    {t:'list', items:[
+      '<b>Ventas:</b> cae dentro de un FVG de 15 min, de uno de 1 h y de uno pequeño de 4 h, y se quita un internal low → key level. Condición: el FVG de arriba. Se toca, hay <b>low resistance liquidity</b>, acumulación, manipulación a una condición y el IFVG de la temporalidad más alta → <b>take profit</b>. «Has juntado todo lo que sabes con una sola condición.» Quien veía la mecha de 4 h y decía «va a subir» debía poner la condición y ser paciente: se cumplió y siguió bajando. Después: si cierra por encima del nuevo gap, el siguiente objetivo; si aguanta, sigue la bajada: «¿para qué ir en contra si todo está alineado?».',
+      '<b>Objetivo muy caro (un alto alineado con otro alto):</b> no sabes si el FVG de 1 h aguantará. En vez de esperar condiciones de 1 h, <b>escalas a 15 min</b>: si el gap abierto se respeta y sube, el precio ya no quiere el low de 1 h; si se invalida, va a por él. Se invalidó, tocó el internal low, se creó la manipulation leg y subió.',
+      '<b>Un hueco de apertura de semana (NWOG):</b> ¿lo rellena entero o vuelve a por los bajos? Condición: el FVG recién abierto. Si lo toca y sube, quiere rellenar el hueco.',
+      '<b>Señales cruzadas:</b> toca un FVG bajista dejando mecha y a la vez uno alcista (y uno bajista de 4 h). Hace caso <b>al FVG más reciente que se ha tocado</b> y pone condiciones. No esperas 3 h a que se invierta uno de 1 h: bajas a <b>la manipulation leg y coges su IFVG de mayor temporalidad</b>. Alternativa: dejar que suba, esperar un gap nuevo y usarlo de condición. A veces no se toca y el precio sube sin ti: no pasa nada.'
+    ]},
+    {t:'quote', text:'No quiero predecir a dónde va el precio: quiero ver lo que me dice que quiere hacer.', src:'Idea del vídeo (parafraseada)'},
+
+    {t:'h2', text:'Sponsorship (gap esponsoreado)', tape:'lo que prometió'},
+    {t:'cards', items:[
+      {c:'y', ico:'🤝', h:'Qué es', p:'El <b>primer gap que se crea después de tocar un key level</b>: está «respaldado» por el gap de 1 h o 4 h que se tocó. El segundo gap que se abre en esa subida no está esponsoreado y muchas veces <b>no es tan bueno</b>.'},
+      {c:'m', ico:'⚖️', h:'Por qué importa', p:'El primer gap suele estar dentro del <b>equilibrium</b> y el segundo no, y siempre queremos estar en la zona gris (<a href="#dia-19" style="color:var(--yellow)">Día 19</a>). Te interesa un gap esponsoreado, o al menos que el segundo toque el equilibrium. Si se alinea con él, «estate tranquilo».'},
+      {c:'b', ico:'🕐', h:'Por temporalidad', p:'Es el primer gap <b>de cada temporalidad</b>: el primero de 5 min y el primero de 15 min tras el key level están, cada uno, esponsoreados. Él mismo dice que no se le entiende del todo y que <b>no le da mucha importancia</b>.'}
+    ]},
+    {t:'p', cls:'detail', html:'Aclara que <b>él no lo usa del todo</b>: le sirve para tener más confianza en un trade o decidir si le gusta. Lo explica para que sepas de qué habla si lo nombra en un recap. Y que, con el <b>backtesting</b>, esto se ve mucho mejor.'},
+
+    {t:'mine', id:'d25-cond', h:'Mis condiciones de hoy', lab:'Esto es tuyo', ph:'En el key level de hoy: si toca el gap y …, entonces …; si lo invalida con fuerza, entonces …',
+     hint:'Escríbelo antes de abrir, en dos líneas: una condición para compras y otra para ventas. Luego compara qué hizo el precio.', pre:''},
+
+    {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, el aviso de que el vídeo es «el mejor del bootcamp», los comentarios de ánimo y la narración vela a vela. Los subtítulos automáticos se comen casi todas las temporalidades («de 5 o …», «de …»): donde pone «5 o 15» es lo que se entiende, pero conviene revisarlo en el vídeo. En la parte de las tres fases (≈ 3:00) dice que los FVG de 5 min «sirven siempre para condiciones» y no queda claro si lo afirma o lo niega: es coherente con el <a href="#dia-15" style="color:var(--yellow)">Día 15</a> (no como key level, sí como condición). No dice instrumento ni fecha en los ejemplos.'}
+   ]},
+
+ { id:26, title:'TP, SL y riesgo-beneficio', tags:['rie','tec'], mins:20, status:'done',
+   intro:'Qué relación riesgo-beneficio usa, dónde pone el take profit y dónde el stop loss, con su trade del día. El cálculo de contratos y cuánto arriesgar exactamente lo deja para la gestión de riesgo. Leído del español original (subtítulos automáticos de YouTube); sus cifras de dinero son ejemplos.',
+   blocks:[
+    {t:'idea', text:'<span class="mk">Mínimo 1:1, nunca ratios negativos.</span> El take profit va en <span class="mk">zonas de conflicto</span> y el stop donde <span class="mk">tu idea queda invalidada</span>. Prefiere RR cortos: acierta más y aguanta menos tiempo.'},
+
+    {t:'h2', text:'Qué es el riesgo-beneficio (RR)', tape:'la base'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s rie">Arriesgas 500 $ (stop)</span><span class="ar">→</span>
+        <span class="s tec">RR 1:1 → ganas 500 $</span><span class="ar">→</span>
+        <span class="s tec">RR 1:2 → ganas 1.000 $</span><span class="ar">→</span>
+        <span class="s psi">RR 0,5 → ganas 250 $ (no se usa)</span>
+      </div>
+      <div class="cap">En la herramienta de posición de TradingView, la zona gris es el stop, la azul es el TP y el número del ratio te dice cuánto ganas por cada euro que arriesgas.</div>`},
+    {t:'cards', items:[
+      {c:'y', ico:'📐', h:'Sus tres RR', p:'Casi siempre entre <b>1:1 y 1:2</b>, y en medio <b>1:1,5</b>. El 1:1,5 lo adelanta para <b>evaluaciones y cuentas de fondeo</b> (el porqué lo dará con el riesgo). Hoy ya no tiene un RR fijo: depende de las condiciones del trade.'},
+      {c:'m', ico:'🎯', h:'Cuándo más alto', p:'Objetivo muy claro: key level, un high relativo alineado con otro, mucha <b>low resistance liquidity</b> y el IFVG de la temporalidad más alta de la manipulation leg. Ahí llega a 1:2 (en su ejemplo, 1:2,2), y suele ser su máximo.'},
+      {c:'c', ico:'⏱️', h:'Cuándo más bajo', p:'Si hay una <b>condición abierta</b> y no sabes qué hará el precio, no predices: <b>sales justo cuando se toque la condición</b>, con un RR menor.'}
+    ]},
+
+    {t:'h2', text:'Por qué RR cortos', tape:'su razón'},
+    {t:'list', items:[
+      'Un TP más lejano es <b>más difícil de alcanzar</b>: a más RR, <b>menos aciertos</b> y más pérdidas que soportar.',
+      '<b>Su primer año:</b> RR 1:3 y 45–50 % de acierto. Tras perder tres días seguidos de 500, al cuarto día pensaba en cerrar antes y hacer tonterías. Se ponía nervioso en el trade (dopamina) y no toleraba bien los días rojos: entraba sin confianza.',
+      '<b>Ahora:</b> RR 1:1, trades de minutos y un acierto de alrededor del <b>70 %</b>. Cuando pierde piensa: «con este porcentaje, mañana probablemente gano».',
+      'No tiene nada en contra de los RR altos («funcionan de madre» y conoce traders buenísimos que los usan): es lo que le encajaba psicológicamente.'
+    ]},
+
+    {t:'h2', text:'Dónde va el take profit', tape:'TP'},
+    {t:'cards', items:[
+      {c:'y', ico:'📍', h:'En zonas de conflicto', p:'Donde el precio pueda girar: una <b>BSL/SSL clara</b>, un <b>key level</b> o, si no sabes hacia dónde irá, <b>una condición</b> (gap de 5 o 15 min). «Si el precio quiere seguir, tiene que tocar el imbalance.»'},
+      {c:'c', ico:'🚫', h:'Nunca ratios negativos', p:'Mínimo <b>1:1</b>: no arriesgas 500 para ganar 400. Si el objetivo queda más cerca que 1:1 (ej. 1:0,6), coges el 1:1 y <b>dejas correr</b>.'}
+    ]},
+
+    {t:'h2', text:'Dónde va el stop loss', tape:'SL'},
+    {t:'list', items:[
+      'No tiene sentido ir sin stop: te puedes arruinar. El stop va <b>donde tu idea del trade queda invalidada</b>: «si toca mi stop, estoy equivocado».',
+      '<b>Regla de partida:</b> en la <b>mecha de la manipulación</b>, el extremo del rango de tu entrada (el bajo en largos, el alto en cortos). Así no ves «manipular la manipulación».',
+      '<b>Truco para avanzados:</b> con un objetivo muy caro, un draw on liquidity clarísimo y un IFVG con fuerza y desplazamiento, puedes acortar el stop. Si eres nuevo, pon el stop en la mecha. En su ejemplo no lo acortó porque la inversión dejó mucha mecha.'
+    ]},
+
+    {t:'h2', text:'Su trade de ese día', tape:'ejemplo'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s tec">Acumulación + manipulación (largos)</span><span class="ar">→</span>
+        <span class="s tec">IFVG de la temporalidad más alta de la manipulation leg</span><span class="ar">→</span>
+        <span class="s rie">Stop en la mecha de la manipulación</span><span class="ar">→</span>
+        <span class="s fin">TP en el primer gap de 30 min</span>
+      </div>
+      <div class="cap">Quería estirar el trade hasta una BSL (RR 1:3), pero esas condiciones no sabe si se invalidan: bajó el primer TP al primer FVG (1:2) y, al ver uno de <b>mayor temporalidad</b> con más peso, al de 30 min (1:1). «Si el precio quiere bajar, tiene que tocar ese gap; si quiere subir, tiene que llegar.» Duró minutos, «cero sufrimiento».</div>`},
+
+    {t:'h2', text:'El 1:1 y el break even', tape:'ejemplo inventado'},
+    {t:'list', items:[
+      'Entra en cortos con el IFVG; stop en la mecha de arriba; <b>TP al 1:1</b> aunque su objetivo (una SSL alineada con low resistance liquidity) esté a un RR de 0,6.',
+      '<b>Al tocar el objetivo:</b> arrastra el stop a la entrada (<b>break even</b>). Si el precio vuelve, salida a cero; si sigue, se lleva la ganancia. «Por eso es tan importante ir siempre a por el 1:1.»',
+      'Con varios objetivos (liquidez y gaps), busca <b>el 1:1 hasta la primera condición que ponga el trade en peligro</b>.',
+      'El break even con detalle lo deja para un vídeo más largo.'
+    ]},
+    {t:'quote', text:'Intento operar de una forma en la que mi cabeza tenga sentido.', src:'Idea del vídeo (parafraseada)'},
+
+    {t:'p', cls:'detail', html:'<b>Lo que viene:</b> <b>mañana, el diario de trading</b> (qué es, cómo hacerlo, por qué y cómo analizarlo), después la <b>estrategia</b> (PO3, AMD, sistemas de entrada), el <b>backtesting</b> y el paso a paso para las cuentas de fondeo. <b>La gestión de riesgo exacta y el cálculo de contratos</b> los explicará cuando llegue al riesgo, no hoy.'},
+
+    {t:'mine', id:'d26-rr', h:'Mi RR, mi TP y mi stop', lab:'Esto es tuyo', ph:'Mi última operación: RR que usé, dónde puse el TP (¿zona de conflicto?) y dónde el stop (¿se invalidaba mi idea?)…',
+     hint:'Revisa tu última operación con sus tres preguntas: ¿mínimo 1:1?, ¿el TP está en una zona donde el precio puede girar?, ¿el stop está donde mi idea queda invalidada?', pre:''},
+
+    {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, las llamadas de sus amigos, los comentarios sobre sus cuentas y los 10.000 $ del día (son su caso, no tu referencia), y sus cifras (500, 1.000, 250, 45 %, 70 %) que son <b>ejemplos</b>. Los subtítulos automáticos pierden varias temporalidades (por ejemplo «gap de …») y las horas de duración de los trades; revisa esos puntos en el vídeo. En el RR 1:1,5 para evaluaciones no dice más; lo explicará con el riesgo. Si quieres saber cuánto arriesgar por operación, <b>todavía no lo ha dado</b>.'}
    ]}
 ];
 
-const TOTAL_DAYS = Math.max(24, ...DAYS.map(d=>d.id));
+const TOTAL_DAYS = Math.max(26, ...DAYS.map(d=>d.id));
 
 const GLOSSARY=[
  {t:'Acumulación', d:'El precio sube y baja sin ir a ningún sitio. Si el mercado se moviera siempre así, no avanzaría: es lo contrario de una tendencia.', days:[4], more:true},
@@ -1765,6 +1882,12 @@ const GLOSSARY=[
  {t:'Sobreanalizar', d:'Dar vueltas a cada detalle (S&amp;P 500, hora, condiciones) tras cada operación y apuntar mejoras sin parar: acabas con <b>ajustes que se contradicen</b>. La salida: pesar lo que tenías a favor y en contra (8 a favor y 2 en contra = buena operación) y seguir.', days:[24,5]},
  {t:'Mi yo de backtesting', d:'Pregunta para cuando pierdes con dinero real: <b>«¿qué haría mi yo de backtesting?»</b>. Ahí no se sobreanaliza: si cumple los parámetros se dispara; si pierde, siguiente día. Con dinero real hacemos cosas distintas (alargar el TP, analizar de más, quedarnos pegados al mercado).', days:[24,9], more:true},
  {t:'Gambling aunque sigas el sistema', d:'Según el Día 24: desviarte de tu gestión de riesgo, operar fuera de tu horario, meter más de una operación al día o entrar en operaciones por tiempo. Hay que ser muy estricto con las reglas.', days:[24,12]},
+ {t:'Condición (si… entonces…)', d:'Un «si pasa esto, haré esto» que te pones cuando <b>no sabes qué hará el precio</b>. Suele ser un FVG de 5 min (a veces 15): si lo respeta, continúa; si lo invalida con fuerza (IFVG), hay giro. Sirve para saber si un key level aguantará y para preparar la cabeza para dos escenarios.', days:[25,15], more:true},
+ {t:'Afirmaciones · Condiciones · Ejecuciones', d:'Los tres pasos de su método: <b>1)</b> afirmaciones en 1 d, 4 h y 1 h (daily bias, key levels, tendencia); <b>2)</b> condiciones en 5 min (a veces 15); <b>3)</b> ejecución con el IFVG de la temporalidad más alta de la manipulation leg.', days:[25,21,23], more:true},
+ {t:'Risk reward (RR)', d:'Relación entre lo que arriesgas (stop) y lo que ganas (TP). Con 500 $ de riesgo: 1:1 = +500, 1:2 = +1.000. Usa entre <b>1:1 y 1:2</b> (también 1:1,5, que adelanta para evaluaciones). <b>Nunca por debajo de 1:1.</b> Prefiere RR cortos: acierta más y aguanta menos tiempo.', days:[26], more:true},
+ {t:'Take profit en zona de conflicto', d:'El TP va donde el precio puede girar: una BSL/SSL clara, un key level o, si no sabes hacia dónde irá, una condición (gap de 5 o 15 min). Si el objetivo está más cerca que 1:1, se coge el 1:1 y se deja correr.', days:[26]},
+ {t:'Stop loss donde se invalida la idea', d:'No se opera sin stop. Va donde tu idea queda invalidada: «si lo toca, estoy equivocado». Regla de partida: en la <b>mecha de la manipulación</b> (el bajo en largos, el alto en cortos). Solo los avanzados lo acortan, con objetivo caro e IFVG con fuerza.', days:[26,23]},
+ {t:'Break even al tocar el objetivo', d:'Con RR 1:1: cuando el precio toca el objetivo (zona de conflicto) se arrastra el stop a la entrada. Si vuelve, sales a cero; si sigue, te llevas la ganancia. El detalle lo deja para un vídeo más largo.', days:[26,22]},
  {t:'Revenge trading', d:'Arriesgar más de la cuenta (overlotting) o sobreoperar (overtrading) tras perder, para recuperar. Casi siempre acaba con más pérdida o con la cuenta quemada. <b>Nada externo lo evita: solo tú.</b>', days:[14]},
  {t:'Jugar con el beneficio', d:'"Voy a jugar con lo que he ganado hoy": arriesgas el profit del día. Para él, <b>una mentira histórica</b>: si lo pierdes, quieres recuperarlo y quemas la cuenta.', days:[14]},
  {t:'Plan de riesgo', d:'Un riesgo fijo por trade y por día (su ejemplo: 300 $). La cuenta dura varios días y te mantiene tranquilo. Subirlo tras perder es el revenge trading.', days:[14,9], more:true},
@@ -1787,7 +1910,7 @@ const GLOSSARY=[
  {t:'Liquidez dentro del FVG', d:'Un low (o high) dentro o pegado al FVG de marco alto: el FVG atrae y la liquidez es dinero; el precio la toma, toca el gap y continúa. Lows/highs alineados con un FVG son puntos muy importantes.', days:[15]},
  {t:'Puntos de liquidez a favor y en contra', d:'Cuenta cuántos puntos de liquidez hay a tu favor y cuántos en tu contra (ej.: 10 a 1). Con muchos más a favor, tiene mucho sentido que llegue al take profit.', days:[15,11]},
  {t:'No entrar antes del key level', d:'Un IFVG que aparece antes de tocar el key level, y con liquidez en contra, es una entrada temprana. <b>"El precio no se va sin ti."</b> Primero toca el nivel, luego el IFVG, luego entras.', days:[15]},
- {t:'FVG patrocinado (sponsored)', d:'Concepto pendiente: los FVG de 15 min se usan como key level cuando el movimiento está "patrocinado" por un gap de 1 h o 4 h. Lo explicará más adelante.', days:[15], more:true},
+ {t:'FVG patrocinado (sponsored)', d:'El <b>primer gap que se crea después de tocar un key level</b>: está respaldado por el gap de 1 h o 4 h tocado. El segundo gap de esa subida no está esponsoreado y suele ser peor. Suele estar dentro del equilibrium; se cuenta por temporalidad (el primero de 5 min, el primero de 15 min…). Él no lo usa del todo: le da confianza.', days:[25,15], more:true},
  {t:'Marco de entrada (30 s – 5 min)', d:'Los IFVG de entrada solo se toman de <b>30 segundos a 5 minutos</b>. 15 min no; 1 h y 4 h se usan para <b>contexto</b>. Sus trades duran de 1 a 10 min (nunca más de media hora).', days:[13]},
  {t:'Sistema de entrada', d:'El IFVG: la confirmación obligatoria antes de comprar o vender. La liquidez y los FVG dan el contexto; el IFVG dice cuándo entrar. Se entra tras tocar un key level (Día 15).', days:[13,15], more:true},
  {t:'Journal', d:'Registro de cada operación: cómo me siento, qué pienso antes y durante, el RR y las métricas. Sin él no hay aprendizaje, y <b>apuntar sin revisar es como no apuntar</b>.', days:[1,3,5,9], more:true},
@@ -1832,36 +1955,38 @@ const UL_SVG='<svg viewBox="0 0 200 14" preserveAspectRatio="none"><path d="M2 9
 
 const SISTEMA=[
  {n:1,h:'Marcar los key levels',st:'ok',p:'FVGs de <b>1 h y 4 h</b> con liquidez dentro o pegada (un low/high), NDOG/NWOG y altos/bajos de 4 h. Un FVG de 5 min <b>nunca</b>; el de 15 min solo si lo «patrocina» uno mayor.',days:[15,8,11]},
- {n:2,h:'Sesgo diario: compras o ventas',st:'part',p:'15 min antes de abrir (≈ 15:20 España): diario → 4 h → 1 h, ¿qué hace el precio?, ¿qué invalido y qué respeto?, ¿dónde están los key levels? Buscas <b>a favor del timeframe alto</b>; si el análisis falla, ese día no operas. Las «condiciones» (cuándo revierte o continúa) las verá después.',days:[21,19]},
+ {n:2,h:'Sesgo diario y condiciones',st:'ok',p:'15 min antes de abrir (≈ 15:20 España): diario → 4 h → 1 h, ¿qué hace el precio?, ¿qué invalido y qué respeto?, ¿dónde están los key levels? Buscas <b>a favor del timeframe alto</b>; si el análisis falla, ese día no operas. Si no sabes qué hará el precio en un key level, <b>pon una condición</b> (FVG de 5 min, a veces 15): si lo respeta, continúa; si lo invalida, giro. Entras con el IFVG de la ML.',days:[25,21,19]},
  {n:3,h:'Elegir el FVG con el equilibrium',st:'ok',p:'Dibuja el rango (swing high/low de 5 min). <b>Comprar solo en descuento, vender solo en premium</b>, y mejor con el FVG alineado con el 50 %.',days:[19]},
  {n:4,h:'Esperar a que toque la zona',st:'ok',p:'Primero toca el nivel, luego aparece el IFVG. Un IFVG <b>antes</b> de tocar, o con liquidez en contra, es entrada temprana: «el precio no se va sin ti».',days:[15]},
  {n:5,h:'Confirmar con el IFVG',st:'ok',p:'El IFVG es la confirmación y es donde entras. Solo de <b>30 s a 5 min</b>, nunca de 15. Con la <b>manipulation leg</b>: tras barrer un low en el key level, marca la ML y espera el IFVG del <b>FVG de mayor timeframe</b> dentro de ella.',days:[23,13]},
  {n:6,h:'Reforzar con SMT y true manipulation',st:'part',p:'Opcional: un SMT en el key level mejora el trade, pero solo vale si <b>los dos índices están en sitio de distribuir</b>. Para él la true manipulation es obligatoria.',days:[17]},
- {n:7,h:'Elegir el objetivo',st:'part',p:'Liquidez objetivo (BSL/SSL, LRL, equal highs/lows). Cuenta los puntos de liquidez <b>a favor y en contra</b>. Su «draw on liquidity» es el high o low que quieres que el precio barra ese día (p. ej. un FVG sin tocar arriba); cómo elegir entre varios lo explicará con las condiciones.',days:[21,15,11]},
- {n:8,h:'Stop, riesgo y tamaño',st:'part',p:'Aún no ha explicado qué riesgo asumir ni cómo escalar con prop firms (lo promete tras la estrategia). Sí ha dado una regla de gestión (Día 22): <b>una vez dentro no tocas nada</b>, y el break even solo se mueve cuando el precio llega a un <b>key level</b>, no por dólares ni emociones. Cuál nivel y cuándo lo detallará después.',days:[22]},
+ {n:7,h:'Elegir el objetivo',st:'part',p:'Liquidez objetivo (BSL/SSL, LRL, equal highs/lows). Cuenta los puntos de liquidez <b>a favor y en contra</b>. Su «draw on liquidity» es el high o low que quieres que el precio barra ese día (p. ej. un FVG sin tocar arriba). El <b>take profit</b> va en zonas de conflicto (BSL/SSL clara, key level o una condición); si no sabes qué hará el precio, sales al tocar la condición.',days:[26,25,21,15,11]},
+ {n:8,h:'Stop, TP y riesgo-beneficio',st:'part',p:'<b>Stop</b> donde tu idea queda invalidada (la mecha de la manipulación). <b>RR</b> mínimo 1:1, normalmente entre 1:1 y 1:2 (1:1,5 en evaluaciones). Al tocar el objetivo, break even. <b>Falta</b> cuánto arriesgar por operación, el cálculo de contratos y cómo escalar con prop firms: lo promete para la gestión de riesgo.',days:[26,22]},
  {n:9,h:'Filtro antes de entrar',st:'ok',p:'«Si pierdo este trade, ¿me voy a enfadar?» Si sí, no entres. Y la pregunta clave: ¿está siguiendo tu plan?',days:[18,12]},
  {n:10,h:'Si algo sale mal',st:'ok',p:'Un fallo puntual es error humano; el problema es la cadena de reglas rotas y el revenge trading. Tras mala racha, parar unos días. Tras un stop no analices cada detalle: pesa <b>lo que tenías a favor y en contra</b> y pregúntate qué haría tu yo de backtesting.',days:[24,14,16,20]}
 ];
 const SIS_ST={ok:{i:'✅',n:'Explicado',c:'c-m'},part:{i:'🟡',n:'A medias',c:'c-y'},no:{i:'⏳',n:'Aún no lo ha explicado',c:'c-c'}};
 
-const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',d24:'9QkzkdspTko',dol:'zcT31zmE5Uc'};
+const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',d24:'9QkzkdspTko',d25:'E3uwP18EYWI',d26:'fTbf2EX6Cng',dol:'zcT31zmE5Uc'};
 const DUDAS=[
  {id:'smt',st:'ver',h:'¿Cuánto usa él los SMT?',q:'En el Día 13 parecía decir que los usa muy poco (en el audio salían como «SIDs»), y en el Día 17 dice que la true manipulation es obligatoria. Puede ser un fallo de la traducción automática.',how:'Escuchar el Día 13 en español cuando habla de los SMT y el Día 17 desde 9:48.',days:[13,17],links:[['Día 17 · «no todos los SMT son válidos»',YT.d17,588]]},
  {id:'fib',st:'ver',h:'Configuración exacta del Fibonacci',q:'Dice que copies su configuración de la pantalla, pero la transcripción no recoge los valores (niveles, colores, el 0.5).',how:'Pausar el Día 19 al principio y copiar los ajustes del Fibonacci.',days:[19,2],links:[['Día 19 · «copy these settings»',YT.d19,37]]},
  {id:'rango',st:'ver',h:'Qué rango dibujar en el equilibrium',q:'Usa el swing high/low del rango de 5 min, sin mini rangos, y a veces dibuja dos. Es visual: conviene verlo en sus ejemplos.',how:'Ver los ejemplos del Día 19 desde 7:10.',days:[19],links:[['Día 19 · el rango de 5 min',YT.d19,425]]},
- {id:'spons',st:'esp',h:'FVG «patrocinado» (sponsored)',q:'Dice que un FVG de 15 min vale como key level si lo patrocina uno de 1 h/4 h, pero aún no lo ha explicado.',how:'Esperar a que lo explique; revisar el Día 15 cuando salga.',days:[15],links:[['Día 15',YT.d15,0]]},
+ {id:'spons',st:'ver',h:'¿Es lo mismo el «patrocinado» del Día 15 y el sponsorship del 25?',q:'El Día 25 lo define como el primer gap que se crea tras tocar un key level, respaldado por el de 1 h/4 h. Parece lo mismo que el «patrocinado» del Día 15, pero él mismo dice que no se le entiende del todo y que no lo usa mucho.',how:'Ver el Día 25 desde 18:30 y comprobarlo con el ejemplo del Día 15.',days:[25,15],links:[['Día 25 · gap esponsoreado',YT.d25,1110],['Día 15',YT.d15,0]]},
  {id:'low',st:'esp',h:'Cuándo hace falta que tome el low',q:'Da una pauta (con buena reacción no hace falta; sin reacción sí interesa), pero dice que se aprende con muchas horas de backtesting.',how:'Cuando salga el vídeo de backtesting, comprobar si da una regla más concreta.',days:[15],links:[]},
  {id:'riesgo',st:'esp',h:'Stop, riesgo y tamaño de posición',q:'Es lo más importante para operar y no lo ha explicado. Lo promete tras la estrategia (qué riesgo asumir y escalar con prop firms).',how:'Esperar. Es el paso 8 de «Mi sistema».',days:[20],links:[['Día 20 · lo que viene',YT.d20,659]]},
- {id:'bias',st:'esp',h:'Las «condiciones» del sesgo y las sesiones',q:'El Día 21 explica el sesgo y el draw on liquidity, pero deja para después las «condiciones» (cuándo el precio revierte o continúa, qué hacer en un día de conflicto) y un vídeo de sesiones (Asia, Londres, Nueva York).',how:'Esperar. Completan los pasos 2 y 7 de «Mi sistema».',days:[21],links:[['Día 21 · «aquí entran las condiciones»',YT.d21,975]]},
+ {id:'bias',st:'esp',h:'El vídeo de sesiones (Asia, Londres, Nueva York)',q:'Las «condiciones» ya están en el Día 25. Sigue pendiente el vídeo de sesiones con sus horas, que prometió en el Día 21 (y la duda de la hora del análisis previo, 9:20 o 9:00).',how:'Esperar. Completa los pasos 2 y 7 de «Mi sistema».',days:[25,21],links:[['Día 25 · las condiciones',YT.d25,87],['Día 21 · «aquí entran las condiciones»',YT.d21,975]]},
  {id:'hora21',st:'ver',h:'¿A qué hora haces el análisis previo?',q:'Dice 10–15 minutos antes (9:20 NY = 15:20 España), pero en su demo marca las 9:00 y en la tarea te pide mirar a las 9:00.',how:'Escuchar el Día 21 en esos dos puntos y decidir tu hora (o preguntarle).',days:[21],links:[['Día 21 · «unos 15 min antes»',YT.d21,293],['Día 21 · la tarea a las 9:00',YT.d21,1790]]},
  {id:'prev21',st:'ver',h:'Su vídeo anterior sobre daily bias y DOL',q:'Recomienda verlo («mismo concepto con otros ejemplos»). Ya encontré el enlace en la descripción del Día 21 («Video DOL extra»), que empieza en el minuto 9:24. No he podido leer ese vídeo.',how:'Verlo desde el enlace (abre el vídeo en el minuto indicado) y, si aporta algo, decirme y lo añado.',days:[21],links:[['Vídeo «DOL extra» de su descripción',YT.dol,564],['Día 21 · su recomendación',YT.d21,265]]},
  {id:'doble',st:'no',h:'Doble SMT, breakaway gaps y cuándo no hace falta true manipulation',q:'Dice que no los explicará porque no los usa ni los domina. Es decisión suya; si te interesan, habría que buscarlos en otro sitio.',how:'Nada que hacer ahora. Decidir más adelante si te importa.',days:[17],links:[['Día 17 · por qué no los explica',YT.d17,1247]]},
  {id:'es15',st:'ver',h:'Días 1–5 contrastados con el audio en español',q:'Esos días se apuntaron con un pase más ligero. Y todo lo demás viene de la traducción automática al inglés, así que algún matiz puede haberse perdido.',how:'Cuando haya cupo, bajar los subtítulos en español y contrastarlos con los apuntes.',days:[1,2,3,4,5],links:[]},
  {id:'d5',st:'ver',h:'¿El Día 5 es de psicología?',q:'El vídeo se titula «Time» pero el contenido es sobre no sobreaprender. Confírmalo tú al verlo.',how:'Mirar la parte donde habla del tiempo en el Día 5.',days:[5],links:[]},
- {id:'be22',st:'esp',h:'Cuándo mover a break even',q:'Dice que solo se mueve cuando el precio llega a un key level (zona de conflicto), no por dólares ni emociones, pero no explica qué nivel ni cómo.',how:'Esperar a que lo explique. Es parte del paso 8 de «Mi sistema».',days:[22],links:[['Día 22 · break even demasiado pronto',YT.d22,650]]},
+ {id:'be22',st:'esp',h:'Cuándo mover a break even exactamente',q:'Día 22: solo con una razón (key level o zona de conflicto), no por dólares ni miedo. Día 26: al tocar el objetivo (RR 1:1) arrastra el stop a la entrada. Pero deja el detalle para un vídeo más largo.',how:'Esperar ese vídeo. Entra en el paso de stop y riesgo de «Mi sistema».',days:[26,22],links:[['Día 26 · break even al tocar el objetivo',YT.d26,930],['Día 22 · break even',YT.d22,657]]},
  {id:'cifra22',st:'ver',h:'La cifra de operaciones que llegan al objetivo',q:'Al hablar de cerrar antes del objetivo dice cuántas de 1.200 operaciones llegarían al objetivo, pero la traducción no lo deja claro y pierde las palabras stop loss y take profit.',how:'Escuchar el Día 22 en español desde 12:24 y comprobar qué dice exactamente.',days:[22],links:[['Día 22 · «no tocas nada»',YT.d22,744]]},
  {id:'ml23',st:'ver',h:'Qué swing marcar como manipulation leg',q:'Dice que no cojas el high más alto sino el más reciente, y que otra barrida crea una ML nueva y la anterior puede dejar de valer. Es visual, y en el primer ejemplo la transcripción se vuelve confusa.',how:'Ver el Día 23 de 5:37 a 10:50 con el gráfico delante y dibujar tú la ML.',days:[23],links:[['Día 23 · cómo identificar la ML',YT.d23,337],['Día 23 · nueva ML tras otra barrida',YT.d23,562]]},
  {id:'resto23',st:'esp',h:'Lo que le queda por explicar de la estrategia',q:'Stop hunts (relacionados con la ML, no iguales), condiciones, PO3 / AMD, todos sus sistemas de entrada y sponsorship. Luego un vídeo largo con la estrategia entera y uno o dos de backtesting; también escalar y qué profit usar.',how:'Esperar. Completan los pasos 2, 6, 7 y 8 de «Mi sistema».',days:[23],links:[['Día 23 · lo que queda',YT.d23,18]]},
- {id:'gamb24',st:'ver',h:'Qué es gambling según el Día 24',q:'Dice que es gambling salirte del riesgo, operar fuera de horario, meter más de una operación al día o entrar en operaciones «por tiempo». La traducción deja dudas sobre esto último y sobre si «más de una al día» es una regla estricta o una pauta.',how:'Escuchar el Día 24 desde 7:30 y comprobar las palabras exactas.',days:[24],links:[['Día 24 · lo que es gambling',YT.d24,451]]}
+ {id:'gamb24',st:'ver',h:'Qué es gambling según el Día 24',q:'Dice que es gambling salirte del riesgo, operar fuera de horario, meter más de una operación al día o entrar en operaciones «por tiempo». La traducción deja dudas sobre esto último y sobre si «más de una al día» es una regla estricta o una pauta.',how:'Escuchar el Día 24 desde 7:30 y comprobar las palabras exactas.',days:[24],links:[['Día 24 · lo que es gambling',YT.d24,451]]},
+ {id:'rr26',st:'ver',h:'¿Qué RR uso exactamente?',q:'Dice que sus favoritos son 1:1 y que adelanta el 1:1,5 para evaluaciones y cuentas de fondeo, pero que ya no tiene un RR fijo: varía según las condiciones del trade. No concreta cuándo un 1:1,5 y cuándo un 1:2.',how:'Esperar la gestión de riesgo, donde dijo que explicará por qué usa cada uno.',days:[26],links:[['Día 26 · sus RR',YT.d26,196]]},
+ {id:'ctr26',st:'esp',h:'Cuánto arriesgar y cómo calcular los contratos',q:'Hoy explica qué es un RR y dónde ponen el TP y el stop, pero deja para la gestión de riesgo cuánto arriesgar por operación y el cálculo de contratos (por ejemplo, cómo arriesgar 500 $).',how:'Esperar. Es lo que falta del paso 8 de «Mi sistema».',days:[26],links:[['Día 26 · no explica los contratos aún',YT.d26,1070]]}
 ];
 const DU_ST={ver:{i:'🔎',n:'Verificar en el vídeo',c:'c-y'},esp:{i:'⏳',n:'Lo explicará él',c:'c-b'},no:{i:'🚫',n:'Él decidió no explicarlo',c:'c-c'}};
