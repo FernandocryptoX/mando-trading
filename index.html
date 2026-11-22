@@ -348,6 +348,45 @@ function cdown(ms){const s=Math.max(0,Math.floor(ms/1000)),d=Math.floor(s/86400)
 
 /* ============ vistas ============ */
 let route0='hoy',dsub='ops',wkOff=0;
+let revMode='week',mOff=0;
+/* ---- Fase 4: un error por semana, revisión mensual y filtros ---- */
+const failLabels=t=>[...new Set([...(t.errs||[]),...chkFails(t)])];
+const focusOf=mon=>(S.cfg.reviews[addD(mon,-7)]||{}).focus||'';
+const focusCount=(W,k)=>W.filter(t=>failLabels(t).includes(k)).length;
+const filters=()=>S.cfg.filters||[];
+const hourBand=t=>{const p=parts(t.ts,TZ_NY);return pad(p.h)+':'+(p.mi<30?'00':'30');};
+const bandEnd=b=>{const h=+b.slice(0,2),m=+b.slice(3);return b.slice(3)==='00'?pad(h)+':30':pad(h+1)+':00';};
+const ruleHit=(f,t)=>f.k==='dow'?DOW[dowOf(t.date)]===f.v:f.k==='hora'?hourBand(t)===f.v:f.k==='htf'?!!(t.chk&&t.chk.htf===0):f.k==='emo'?t.pre===f.v:false;
+const filtersHit=t=>filters().filter(f=>ruleHit(f,t));
+const filterLabel=f=>f.k==='dow'?'No operar los '+f.v:f.k==='hora'?'No operar entre las '+f.v+' y las '+bandEnd(f.v)+' (hora de Nueva York)':f.k==='htf'?'No operar si el HTF está borroso':f.k==='emo'?'No entrar con '+String(f.v).toLowerCase():'';
+const filterToday=f=>f.k==='dow'?DOW[dowOf(todayES())]===f.v:f.k==='hora'?hourBand({ts:Date.now()})===f.v:false;
+const MES_N=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const mKey=ds=>ds.slice(0,7);
+const mAdd=(k,n)=>{const a=k.split('-').map(Number),d=new Date(Date.UTC(a[0],a[1]-1+n,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1);};
+const mLabel=k=>{const a=k.split('-').map(Number);return MES_N[a[1]-1]+' '+a[0];};
+function monthDue(){
+  const t=todayES(),k=mKey(t),dim=new Date(Date.UTC(+k.slice(0,4),+k.slice(5,7),0)).getUTCDate(),d=+t.slice(8,10);
+  const has=m=>allReal().some(x=>mKey(x.date)===m),done=m=>((S.cfg.mrev||{})[m]||{}).done;
+  if(d>=dim-2&&has(k)&&!done(k))return k;
+  const pk=mAdd(k,-1);if(d<=5&&has(pk)&&!done(pk))return pk;
+  return null;}
+const revToggle=()=>'<div class="seg" style="margin-bottom:10px">'+[['week','Semana'],['month','Mes']].map(x=>'<button data-act="revmode" data-v="'+x[0]+'" class="'+(revMode===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+function focusCards(mon,W){
+  const rv=S.cfg.reviews[mon]||{},cur=focusOf(mon),prevW=allReal().filter(t=>inWeek(t,addD(mon,-7)));
+  let h='';
+  if(cur){const n=focusCount(W,cur),p=focusCount(prevW,cur);
+    h+='<section class="card"><h3>Tu foco de esta semana</h3><div class="insight '+(n===0||n<p?'good':'bad')+'"><b>'+esc(cur)+'</b> · apareció <b>'+n+'</b>'+(n===1?' vez':' veces')+(prevW.length?' (la semana anterior, '+p+')':'')+'.</div><p class="small muted" style="margin:8px 0 0">'+(n===0?'Semana limpia en esto. Mantenlo.':n<p?'Mejor que la anterior.':'Sigue ahí: insiste otra semana en lo mismo, no cambies de error.')+'</p></section>';}
+  const cand=group(closed(W),t=>failLabels(t)).sort((x,y)=>x.net-y.net||y.c-x.c).slice(0,6);
+  h+='<section class="card"><h3>Mi error para la semana que viene</h3><p class="small muted" style="margin:0 0 10px">Elige <b>uno</b>. Intentar arreglarlos todos a la vez no funciona.</p>'+(cand.length?'<div class="chips">'+cand.map(c=>'<button class="chip'+(rv.focus===c.k?' on':'')+'" data-act="focus" data-v="'+esc(c.k)+'">'+esc(c.k)+' · '+c.c+' · '+money(c.net)+'</button>').join('')+'</div>':'<p class="muted small" style="margin:0">Esta semana no hay errores anotados ni fallos del checklist.</p>')+(rv.focus?'<div class="acts" style="margin-top:10px"><button class="btn sm" data-act="focus" data-v="">Quitar foco</button></div>':'')+'</section>';
+  return h;
+}
+function focusHoy(){
+  const mon=mondayOf(todayES()),f=focusOf(mon),fl=filters();
+  if(!f&&!fl.length)return '';
+  const W=allReal().filter(t=>inWeek(t,mon)),n=f?focusCount(W,f):0,prev=S.cfg.reviews[addD(mon,-7)]||{};
+  return '<section class="card hl"><h3>Mi foco</h3>'+(f?'<div class="insight '+(n?'bad':'good')+'"><b>'+esc(f)+'</b> · '+n+(n===1?' vez':' veces')+' esta semana</div>'+(prev.text?'<p class="small muted" style="margin:8px 0 0">Lo que quería cambiar: '+esc(prev.text)+'</p>':''):'<p class="small muted" style="margin:0">Aún no has elegido tu error de la semana. Hazlo en la revisión.</p>')+(fl.length?'<p class="small" style="margin:12px 0 4px"><b>Mis filtros</b></p>'+fl.map(x=>'<div class="insight'+(filterToday(x)?' bad':'')+'">'+esc(filterLabel(x))+(filterToday(x)?' · <b>aplica ahora</b>':'')+'</div>').join(''):'')+'</section>';
+}
+
 const header=(kick,title)=>'<header class="top"><div><div class="kick">'+esc(kick)+'</div><h1>'+esc(title)+'</h1></div>'+syncChip()+'</header>';
 const exBanner=()=>all().some(t=>t.ex)?'<div class="banner">Estás viendo datos de ejemplo. Bórralos en «Más» cuando quieras empezar con los tuyos.</div>':'';
 const stat=(l,v,c)=>'<div class="stat"><small>'+l+'</small><b class="'+(c||'')+'">'+v+'</b></div>';
@@ -373,6 +412,7 @@ function renderHoy(){
   const items=[];
   const ct=contractTodo(),stt=srsTodo(),nt=newsTodo();if(nt)items.push(nt);if(ct)items.push(ct);if(stt)items.push(stt);
   if(due)items.push('<a class="todo u" href="#revision" data-wk="'+due+'" style="text-decoration:none;color:inherit"><b>Revisión de la semana del '+niceDate(due)+'</b><span>Hacer</span></a>');
+  const md=monthDue();if(md)items.push('<button class="todo u" data-act="mrev" data-v="'+md+'"><b>Revisión del mes de '+mLabel(md)+'</b><span>Hacer</span></button>');
   const bp=all().filter(x=>x.kind==='bt'&&isPend(x)).length;if(bp)items.push('<button class="todo" data-act="dsub" data-v="bt"><b>Backtesting: '+bp+' operaci'+(bp>1?'ones':'ón')+' por completar</b><span>Abrir</span></button>');
   allReal().filter(isPend).slice(0,4).forEach(x=>items.push('<button class="todo u" data-act="edit" data-id="'+x.id+'"><b>Completa el diario: '+niceDate(x.date)+' '+esc(x.time||'')+' · '+(x.side==='short'?'venta':'compra')+' · '+money(x.res)+'</b><span>Completar</span></button>'));
   pend.slice(0,4).forEach(x=>items.push('<button class="todo u" data-act="edit" data-id="'+x.id+'"><b>Anota el resultado: '+niceDate(x.date)+' '+esc(x.time||'')+' · '+(x.side==='short'?'venta':'compra')+'</b><span>Abrir</span></button>'));
@@ -382,7 +422,7 @@ function renderHoy(){
    '<section class="card"><h3>Resultado de hoy</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Resultado',a.c?money(a.net):'—',cls(a.net))+stat('Reglas seguidas',td.filter(x=>x.rules).length?Math.round(100*td.filter(x=>x.rules==='si').length/td.filter(x=>x.rules).length)+' %':'—')+'</div>'+
    (stk?'<p class="small muted" style="margin:10px 0 0">Llevas <b style="color:var(--mint)">'+stk+'</b> operaci'+(stk>1?'ones':'ón')+' seguidas cumpliendo tus reglas.</p>':'')+
    '<div class="acts" style="margin-top:12px"><button class="btn pri" data-act="new">Anotar operación</button></div></section>'+
-   btCard()+studyCard()+bancaCard()+
+   focusHoy()+btCard()+studyCard()+bancaCard()+
    '<section class="card"><h3>Meta del mes</h3><div class="row"><b style="font-size:22px" class="'+cls(mon.net)+'">'+(mon.c?money(mon.net):'$0')+'</b><span class="muted">de '+plain(goal)+'</span></div><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div><p class="small muted" style="margin:0">Suma de los resultados anotados en el diario este mes. Cuando exista la Banca, aquí entrarán los cobros de las prop firms.</p></section>'+
    '<section class="card"><h3>Pendientes</h3>'+(items.length?items.join(''):'<p class="muted" style="margin:0">Todo al día. Nada pendiente de cerrar.</p>')+'</section></div></div>';
   tick();
@@ -392,6 +432,7 @@ function tradeRow(t){
   const sd=t.kl?(t.kl+' · '+(!t.ifvg||t.ifvg==='Sin IFVG'?'sin IFVG':'IFVG '+t.ifvg)):((t.setup||[]).slice(0,3).join(' · ')||'Sin setup');
   const tags=[];
   if(isPend(t))tags.push('<span class="tag neu">por completar</span>');
+  if(isReal(t)&&filtersHit(t).length)tags.push('<span class="tag bad">contra tu filtro</span>');
   if(t.kind)tags.push('<span class="tag">'+OP_TIPO_N[t.kind]+'</span>');
   if(t.risk>0)tags.push('<span class="tag">riesgo '+plain(t.risk)+(t.rr>0?' · '+rrTxt(t.rr):'')+'</span>');
   if(t.conf&&t.conf.length)tags.push('<span class="tag">'+t.conf.length+' confluencias</span>');
@@ -510,21 +551,52 @@ function renderDiario(){
 }
 
 function renderRevision(){
+  if(revMode==='month')return renderRevisionMes();
   const mon=addD(mondayOf(todayES()),7*wkOff),end=addD(mon,6),W=allReal().filter(t=>inWeek(t,mon)),a=agg(W),rv=S.cfg.reviews[mon]||{};
   const ru=W.filter(t=>t.rules),pr=ru.length?Math.round(100*ru.filter(t=>t.rules==='si').length/ru.length):null;
   const errs=group(W,t=>t.errs).sort((x,y)=>y.n-x.n||x.net-y.net).slice(0,3);
   const emo=group(closed(W),t=>t.pre).filter(x=>x.net<0).sort((x,y)=>x.net-y.net).slice(0,2);
   const bs=group(closed(W),t=>t.setup).filter(x=>x.net>0).sort((x,y)=>y.net-x.net)[0];
   const f=d=>{const p=d.split('-').map(Number);return p[2]+' '+MON[p[1]-1];};
-  $('#view').innerHTML='<div class="wrap">'+header('Revisión semanal','Revisión')+'<div class="stack">'+exBanner()+diarioSeg('rev')+
+  $('#view').innerHTML='<div class="wrap">'+header('Revisión semanal','Revisión')+'<div class="stack">'+exBanner()+diarioSeg('rev')+revToggle()+
    '<div class="row"><button class="btn sm" data-act="wk" data-v="-1" aria-label="Semana anterior">←</button><b>'+f(mon)+' – '+f(end)+(wkOff===0?' (esta semana)':'')+'</b><button class="btn sm" data-act="wk" data-v="1" aria-label="Semana siguiente" '+(wkOff>=0?'disabled':'')+'>→</button></div>'+
    (!W.length?'<section class="card empty"><h2>Semana sin operaciones</h2><p class="muted" style="margin:0">Cuando anotes operaciones esta semana, aquí verás tus errores repetidos y qué cambiar.</p></section>':
    '<section class="card"><h3>Resumen</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Resultado',a.c?money(a.net):'—',cls(a.net))+stat('Reglas seguidas',pr==null?'—':pr+' %')+'</div><p class="small muted" style="margin:10px 0 0">Backtesting: '+fmtMin(weekMinutes(mon))+' de '+fmtMin(S.cfg.btGoalMin)+'.</p></section>'+
-   '<section class="card"><h3>Tus 3 errores más repetidos</h3>'+(errs.length?errs.map(e=>'<div class="insight bad"><b>'+esc(e.k)+'</b> · '+e.n+' vez'+(e.n>1?'es':'')+(e.c?' · '+money(e.net):'')+'</div>').join(''):'<p class="muted" style="margin:0">No anotaste errores esta semana.</p>')+'</section>'+
+   '<section class="card"><h3>Tus 3 errores más repetidos</h3>'+(errs.length?errs.map(e=>'<div class="insight bad"><b>'+esc(e.k)+'</b> · '+e.n+(e.n>1?' veces':' vez')+(e.c?' · '+money(e.net):'')+'</div>').join(''):'<p class="muted" style="margin:0">No anotaste errores esta semana.</p>')+'</section>'+
    '<section class="card"><h3>Emociones que te costaron dinero</h3>'+(emo.length?emo.map(e=>'<div class="insight bad"><b>'+esc(e.k)+'</b> al entrar · '+e.c+' op · '+money(e.net)+'</div>').join(''):'<p class="muted" style="margin:0">Ninguna emoción de entrada acabó en pérdida neta.</p>')+(bs?'<div class="insight good" style="margin-top:12px">Lo que funcionó: <b>'+esc(bs.k)+'</b> · '+money(bs.net)+' en '+bs.c+' op.</div>':'')+'</section>'+
+   focusCards(mon,W)+
    '<section class="card"><h3>¿Qué cambias la semana que viene?</h3><textarea class="hw" id="revText" placeholder="Una cosa concreta…">'+esc(rv.text||'')+'</textarea><div class="acts" style="margin-top:10px"><button class="btn '+(rv.done?'':'pri')+'" data-act="revdone" data-mon="'+mon+'">'+(rv.done?'Revisión hecha ✓ (deshacer)':'Marcar revisión hecha')+'</button></div></section>')+
    '</div></div>';
   const ta=$('#revText');if(ta)ta.oninput=()=>{const r=S.cfg.reviews[mon]||(S.cfg.reviews[mon]={});r.text=ta.value;saveCfg();};
+}
+
+function renderRevisionMes(){
+  const key=mAdd(mKey(todayES()),mOff),M=allReal().filter(t=>mKey(t.date)===key),Pm=allReal().filter(t=>mKey(t.date)===mAdd(key,-1));
+  const a=agg(M),pa=agg(Pm),cl=closed(M),mr=(S.cfg.mrev||{})[key]||{};
+  const d=(x,y,f)=>x==null||y==null||!Pm.length?'':' <span class="muted small">('+(x>=y?'+':'−')+f(Math.abs(x-y))+' vs mes anterior)</span>';
+  const cand=[];
+  const push=(k,rows)=>rows.filter(r=>r.c>=5&&r.net<0&&(a.win==null||r.win==null||r.win<a.win)).forEach(r=>cand.push({k,v:r.k,c:r.c,win:r.win,net:r.net}));
+  push('dow',group(cl,t=>DOW[dowOf(t.date)]));
+  push('hora',group(cl,t=>hourBand(t)));
+  push('htf',group(cl.filter(t=>t.chk&&t.chk.htf===0),t=>'borroso'));
+  push('emo',group(cl,t=>t.pre).filter(r=>EMO_TONE[r.k]!=='good'));
+  cand.sort((x,y)=>x.net-y.net);
+  const taken=f=>filters().some(x=>x.k===f.k&&x.v===f.v);
+  const errs=group(cl,t=>failLabels(t)).sort((x,y)=>x.net-y.net||y.c-x.c).slice(0,5);
+  const wk=[];for(let m=mondayOf(key+'-01');m<=key+'-31';m=addD(m,7)){const fo=focusOf(m);if(fo&&mKey(addD(m,3))===key)wk.push({m,fo,n:focusCount(allReal().filter(t=>inWeek(t,m)),fo)});}
+  const f2=n=>Math.round(n)+' %';
+  $('#view').innerHTML='<div class="wrap">'+header('Revisión mensual','Revisión')+'<div class="stack">'+exBanner()+diarioSeg('rev')+revToggle()+
+   '<div class="row"><button class="btn sm" data-act="mo" data-v="-1" aria-label="Mes anterior">←</button><b>'+mLabel(key)+(mOff===0?' (este mes)':'')+'</b><button class="btn sm" data-act="mo" data-v="1" aria-label="Mes siguiente" '+(mOff>=0?'disabled':'')+'>→</button></div>'+
+   (!M.length?'<section class="card empty"><h2>Mes sin operaciones reales</h2><p class="muted" style="margin:0">Cuando anotes operaciones de evaluación o fondeada este mes, aquí verás qué dice tu data. El backtesting tiene su propia vista.</p></section>':
+   '<section class="card"><h3>Resumen</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Ganadoras',a.win==null?'—':Math.round(a.win)+' %')+stat('Resultado',a.c?money(a.net):'—',cls(a.net))+'</div><p class="small" style="margin:10px 0 0">R medio: <b>'+(a.avgR==null?'—':a.avgR.toFixed(2).replace('.',','))+'</b>'+d(a.avgR,pa.avgR,x=>x.toFixed(2).replace('.',','))+' · Resultado'+d(a.net,pa.net,x=>plain(x))+'</p></section>'+
+   '<section class="card"><h3>Los errores que más te costaron</h3>'+(errs.length?errs.map(e=>'<div class="insight bad"><b>'+esc(e.k)+'</b> · '+e.c+(e.c>1?' veces':' vez')+' · '+money(e.net)+'</div>').join(''):'<p class="muted small" style="margin:0">Sin errores anotados ni fallos del checklist este mes.</p>')+'</section>'+
+   '<section class="card"><h3>¿Qué dejarías de operar?</h3><p class="small muted" style="margin:0 0 10px">«A veces no se trata de hacer más, sino de hacer menos.» Solo salen grupos con 5 o más operaciones que pierden y aciertan menos que tu media. Con pocas operaciones puede ser casualidad: úsalo como una hipótesis para probar un mes.</p>'+(cand.length?cand.slice(0,6).map(c=>'<div class="insight bad" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><span><b>'+esc(filterLabel(c))+'</b><br><span class="small muted">'+c.c+' op · '+(c.win==null?'—':Math.round(c.win)+' %')+' · '+money(c.net)+'</span></span>'+(taken(c)?'<span class="small muted">ya activo</span>':'<button class="btn sm" data-act="adopt" data-k="'+c.k+'" data-v="'+esc(c.v)+'">Adoptar</button>')+'</div>').join(''):'<p class="muted small" style="margin:0">Todavía no hay ningún grupo con datos suficientes que pierda. Sigue registrando.</p>')+'</section>'+
+   (filters().length?'<section class="card"><h3>Mis filtros activos</h3>'+filters().map(f=>{const h=M.filter(t=>ruleHit(f,t));const hn=agg(h);return '<div class="insight" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><span><b>'+esc(filterLabel(f))+'</b><br><span class="small muted">Este mes operaste contra él '+h.length+(h.length===1?' vez':' veces')+(h.length&&hn.c?' · '+money(hn.net):'')+'</span></span><button class="btn sm" data-act="unfilter" data-v="'+f.id+'">Quitar</button></div>';}).join('')+'</section>':'')+
+   (wk.length?'<section class="card"><h3>Mis focos de cada semana</h3>'+wk.map(w=>'<div class="insight '+(w.n?'bad':'good')+'">Semana del '+niceDate(w.m)+': <b>'+esc(w.fo)+'</b> · '+w.n+(w.n===1?' vez':' veces')+'</div>').join('')+'</section>':'')+
+   '<section class="card"><h3>Revisa las imágenes</h3><p class="small muted" style="margin:0 0 10px">Mira tus pérdidas del mes una detrás de otra: ¿se repite la misma estructura? Así encontró él sus 6 pérdidas iguales.</p><button class="btn" data-act="galmes">Ver imágenes de pérdidas</button></section>')+
+   '<section class="card"><h3>Mi conclusión del mes</h3><label class="field">¿Qué funcionó?<textarea class="hw" id="mrevA" placeholder="Lo que quiero mantener…">'+esc(mr.a||'')+'</textarea></label><label class="field" style="margin-top:10px">¿Qué cambio el mes que viene?<textarea class="hw" id="mrevB" placeholder="Una cosa concreta…">'+esc(mr.b||'')+'</textarea></label><div class="acts" style="margin-top:10px"><button class="btn '+(mr.done?'':'pri')+'" data-act="mrevdone" data-v="'+key+'">'+(mr.done?'Revisión hecha ✓ (deshacer)':'Marcar revisión del mes hecha')+'</button></div></section>'+
+   '</div></div>';
+  [['mrevA','a'],['mrevB','b']].forEach(x=>{const ta=$('#'+x[0]);if(ta)ta.oninput=()=>{S.cfg.mrev=S.cfg.mrev||{};const r=S.cfg.mrev[key]=S.cfg.mrev[key]||{};r[x[1]]=ta.value;saveCfg();};});
 }
 
 function renderMas(){
@@ -583,8 +655,10 @@ function renderSheet(){
   const ft={chk:F.chk,kind:F.kind},cs=chkSet(F.kind),sc8=chkScore(ft);
   const chkBlock='<div><div class="lbl">Checklist del trade · <b>'+(sc8!=null?'Proceso '+sc8+'/'+cs.length:chkN(ft)+'/'+cs.length+' respondidas')+'</b></div>'+cs.map(q=>'<div class="chkq"><span>'+q[1]+'</span><div class="chips"><button type="button" class="chip '+(q[2]===1?'good':'bad')+(F.chk[q[0]]===1?' on':'')+'" data-f="chk:'+q[0]+':1">Sí</button><button type="button" class="chip '+(q[2]===0?'good':'bad')+(F.chk[q[0]]===0?' on':'')+'" data-f="chk:'+q[0]+':0">No</button></div></div>').join('')+'</div>';
   const imgBlock='<div><div class="lbl">Imágenes · <b>'+IMG_SLOTS.slice(0,3).filter(s=>imgOk(F.img[s[0]])).length+'/3</b></div><p class="small muted" style="margin:0 0 8px">Pega un enlace (TradingView: cámara → «Copiar enlace», o el de tu plataforma de backtesting) o sube una captura. Copia la captura y pégala con Ctrl+V en cualquier parte de este formulario (va al primer hueco libre), o arrástrala sobre un hueco.</p>'+IMG_SLOTS.map(s=>{const u=F.img[s[0]]||'',st=imgIsStored(u),ok=imgOk(u);return '<div class="imgslot" data-slot="'+s[0]+'"><div class="small muted" style="margin-bottom:4px">'+s[1]+'</div>'+(st?'<div class="small" style="margin:0 0 6px">Imagen subida ✓</div>':'<input id="fImg_'+s[0]+'" value="'+esc(u)+'" placeholder="Enlace, o Ctrl+V con una captura" style="width:100%">')+'<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm" data-f="imgpaste:'+s[0]+'">Pegar</button><button type="button" class="btn sm" data-f="imgfile:'+s[0]+'">Subir imagen</button>'+(u?'<button type="button" class="btn sm" data-f="imgclear:'+s[0]+'" aria-label="Quitar">✕ Quitar</button>':'')+'</div>'+(u&&!ok?'<p class="small" style="color:var(--bad);margin:6px 0 0">Eso no parece un enlace ni una imagen. Pega un enlace que empiece por https:// o sube una captura.</p>':'')+(ok?(st?imgTag(u,'imgprev'):'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+imgTag(u,'imgprev')+'</a>'):'')+'</div>';}).join('')+'</div>';
+  const fcsNow=focusOf(mondayOf(todayES())),fHits=bt?[]:filtersHit({date:F.date,ts:(Date.parse(F.date+'T'+(F.time||'12:00')+':00')||Date.now()),pre:F.pre,chk:F.chk});
+  const fBanner=(!bt&&fcsNow?'<div class="insight">Esta semana trabajas: <b>'+esc(fcsNow)+'</b></div>':'')+fHits.map(f=>'<div class="insight bad">Ojo, va contra tu filtro: '+esc(filterLabel(f))+'</div>').join('');
   $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+title+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
-   kick('Al cerrar la operación')+
+   fBanner+kick('Al cerrar la operación')+
    '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+'</div>'+btDay+
    '<div><div class="lbl">Dirección</div><div class="big2">'+chip('side','Compra',F.side==='long')+chip('side','Venta',F.side==='short')+'</div></div>'+
    '<div><div class="lbl">Riesgo ($) <span class="muted small">· lo que arriesgabas al entrar, hasta el stop</span></div><div class="row" style="flex-wrap:nowrap;gap:8px"><input id="fRisk" inputmode="decimal" value="'+esc(F.risk)+'" placeholder="500" style="flex:1;min-width:0">'+recent.map(v=>'<button type="button" class="chip'+(num(F.risk)===v?' on':'')+'" data-f="risk:'+v+'">'+plain(v)+'</button>').join('')+'</div></div>'+
@@ -691,6 +765,14 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');if(!a)return;
   const act=a.dataset.act,v=a.dataset.v;
   if(act==='new')openSheet(null,(route0==='diario'&&dsub==='bt')?'bt':undefined);
+  else if(act==='revmode'){revMode=v;render();}
+  else if(act==='mo'){mOff=Math.min(0,mOff+(+v));render();}
+  else if(act==='mrev'){revMode='month';mOff=0;let k=mKey(todayES());while(k>v){k=mAdd(k,-1);mOff--;}location.hash='#revision';render();}
+  else if(act==='focus'){const mon=addD(mondayOf(todayES()),7*wkOff),r=S.cfg.reviews[mon]||(S.cfg.reviews[mon]={});r.focus=(r.focus===v)?'':v;saveCfg();render();toast(r.focus?'Foco elegido: '+r.focus:'Foco quitado');}
+  else if(act==='adopt'){S.cfg.filters=(S.cfg.filters||[]).concat({id:uid(),k:a.dataset.k,v,since:Date.now()});saveCfg();render();toast('Filtro adoptado');}
+  else if(act==='unfilter'){S.cfg.filters=(S.cfg.filters||[]).filter(x=>x.id!==v);saveCfg();render();toast('Filtro quitado');}
+  else if(act==='mrevdone'){S.cfg.mrev=S.cfg.mrev||{};const r=S.cfg.mrev[v]=S.cfg.mrev[v]||{};r.done=!r.done;saveCfg();render();toast(r.done?'Revisión del mes hecha':'Revisión del mes reabierta');}
+  else if(act==='galmes'){dkind='all';dgal='loss';dsub='stats';location.hash='#diario';render();}
   else if(act==='dgal'){dgal=v;render();}
   else if(act==='btstats'){dkind='bt';dsub='stats';render();}
   else if(act==='edit'){const t=S.trades[a.dataset.id];if(t)openSheet(t);}
