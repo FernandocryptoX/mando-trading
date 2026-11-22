@@ -103,6 +103,31 @@ function syncDialog(a){
       sdSave(a,d,diff,'Ajuste de balance');render();toast('Ajuste de '+money(diff)+' guardado');}}]);
 }
 
+/* ---------- objetivos por cuenta: lo que hace falta para pasar la evaluación o poder cobrar ---------- */
+function accGoals(a){
+  const s=accState(a);if(!s)return null;
+  const g=[],isEval=a.st==='eval';
+  if(isEval&&s.target!=null){const prof=s.bal-s.start,tg=s.target-s.start,ok=prof>=tg;
+    g.push({k:'Beneficio',short:'beneficio',pct:Math.max(0,Math.min(100,100*prof/tg)),txt:ok?'Objetivo cumplido':(prof<0?'Vas en '+money(prof):'Llevas '+plain(prof))+' de '+plain(tg)+' · te faltan '+plain(s.toTarget),ok});}
+  if(s.minDays){const n=+a.profDay>0?s.profDays:s.days,ok=n>=s.minDays;
+    g.push({k:+a.profDay>0?'Días rentables':'Días operados',short:'días',pct:Math.min(100,100*n/s.minDays),txt:n+' de '+s.minDays+(+a.profDay>0?' (cada uno de '+plain(+a.profDay)+' o más)':''),ok});}
+  if(s.cons&&s.cons.best>0){const need=s.cons.best/(s.cons.lim/100),ok=s.cons.pct!=null&&s.cons.pct<=s.cons.lim;
+    g.push({k:'Consistencia',short:'consistencia',pct:ok?100:Math.max(0,Math.min(100,100*s.cons.total/need)),txt:ok?'Cumplida':'Necesitas '+plain(need)+' de beneficio total · '+(s.cons.total<0?'vas en '+money(s.cons.total):'llevas '+plain(s.cons.total)),ok});}
+  if(!isEval&&s.nextPay){const dd=Math.ceil((s.nextPay-Date.now())/86400000),ok=dd<=0;
+    g.push({k:'Primer cobro',short:'fecha',pct:ok?100:0,txt:ok?'Ya puedes pedirlo':'Desde el '+new Date(s.nextPay).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+' (en '+dd+' días)',ok});}
+  return g.length?g:null;
+}
+function accObjectivesCard(){
+  const L=accActiveList().map(a=>({a,g:accGoals(a)}));
+  if(!L.length)return '';
+  const body=L.map(x=>{
+    if(!x.g)return '<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="row"><b>'+esc(x.a.plan)+'</b><span class="tag">sin objetivos</span></div><p class="small muted" style="margin:4px 0 0">Pon el tamaño y las reglas en «Editar» para ver qué te falta.</p></div>';
+    const open=x.g.filter(y=>!y.ok),ready=!open.length;
+    return '<div style="padding:10px 0;border-top:1px solid var(--line)"><div class="row"><b>'+esc(x.a.plan)+'</b><span class="tag '+(ready?'good':'neu')+'">'+(ready?(x.a.st==='eval'?'Lo cumples todo':'Puedes pedir el cobro'):'Te falta: '+esc(open.map(y=>y.short).join(', ')))+'</span></div>'+
+      x.g.map(y=>'<div style="margin-top:8px"><div class="row small" style="flex-wrap:nowrap;gap:8px"><span>'+(y.ok?'✓ ':'')+esc(y.k)+'</span><span class="muted" style="text-align:right">'+esc(y.txt)+'</span></div><div class="bar'+(y.ok?' m':'')+'" style="margin:4px 0 0"><i style="width:'+y.pct.toFixed(0)+'%"></i></div></div>').join('')+'</div>';
+  }).join('');
+  return '<section class="card"><h3>Objetivos por cuenta</h3><p class="small muted" style="margin:0 0 4px">Lo que le falta a cada cuenta para pasar la evaluación o para poder cobrar.</p>'+body+'</section>';
+}
 function accCurve(a){
   const T=Object.values(S.trades).filter(t=>t.acc===a.id&&t.res!=null).sort((x,y)=>x.ts-y.ts);
   if(T.length<2)return '';
@@ -171,7 +196,7 @@ function renderBanca(){
   $('#view').innerHTML='<div class="wrap">'+header('Prop firms','Banca')+'<div class="stack">'+
    '<section class="card hl"><h3>Resumen</h3><div class="stats">'+stat('Gastado',plain(S0.spent))+stat('Cobrado',plain(S0.got))+stat('Neto',money(S0.net),cls(S0.net))+'</div>'+
    '<div class="stats" style="margin-top:10px">'+stat('Cuentas',S0.n)+stat('Activas',S0.eval+S0.funded)+stat('Pasaron a funded',S0.passed+' de '+S0.n)+'</div></section>'+
-   '<section class="card"><h3>Cobrado este mes</h3><div class="row"><b style="font-size:22px">'+plain(cobradoMes)+'</b><span class="muted">de '+plain(goal)+'</span></div><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div><p class="small muted" style="margin:0">La meta mensual se cambia en «Más».</p></section>'+
+   accObjectivesCard()+'<section class="card"><h3>Cobrado este mes</h3><b style="font-size:22px">'+plain(cobradoMes)+'</b><p class="small muted" style="margin:4px 0 0">Lo que has cobrado de las prop firms este mes.</p></section>'+
    chartsBanca(L)+(firmRows?'<section class="card"><h3>Retorno por prop firm</h3>'+firmRows+'<p class="small muted" style="margin:10px 0 0">Neto = cobros − lo pagado − otros gastos. Una cuenta perdida o cerrada sigue contando.</p></section>':'')+
    '<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+
    (L.length?L.map(card).join(''):'<section class="card empty"><h2>Todavía no hay cuentas</h2><p class="muted">Anota cada cuenta de prop firm que compres para saber si el negocio sale a cuenta.</p></section>')+

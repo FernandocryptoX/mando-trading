@@ -440,13 +440,12 @@ function renderHoy(){
   pend.slice(0,4).forEach(x=>items.push('<button class="todo u" data-act="edit" data-id="'+x.id+'"><b>Anota el resultado: '+niceDate(x.date)+' '+esc(x.time||'')+' · '+(x.side==='short'?'venta':'compra')+'</b><span>Abrir</span></button>'));
   norules.forEach(x=>items.push('<button class="todo" data-act="edit" data-id="'+x.id+'"><b>¿Seguiste tus reglas? '+niceDate(x.date)+'</b><span>Responder</span></button>'));
   $('#view').innerHTML='<div class="wrap">'+header(niceDate(t),'Hoy')+'<div class="stack">'+exBanner()+
-   '<section class="card hl" id="sesCard">'+sessionHTML()+'</section>'+newsCard()+
+   '<section class="card hl" id="sesCard">'+sessionHTML()+'</section>'+newsCard()+bancaCard()+
+   '<section class="card"><h3>Pendientes</h3>'+(items.length?items.join(''):'<p class="muted" style="margin:0">Todo al día. Nada pendiente de cerrar.</p>')+'</section>'+
    '<section class="card"><h3>Resultado de hoy</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Resultado',a.c?money(a.net):'—',cls(a.net))+stat('Reglas seguidas',td.filter(x=>x.rules).length?Math.round(100*td.filter(x=>x.rules==='si').length/td.filter(x=>x.rules).length)+' %':'—')+'</div>'+
    (stk?'<p class="small muted" style="margin:10px 0 0">Llevas <b style="color:var(--mint)">'+stk+'</b> operaci'+(stk>1?'ones':'ón')+' seguidas cumpliendo tus reglas.</p>':'')+
    '<div class="acts" style="margin-top:12px"><button class="btn pri" data-act="new">Anotar operación</button></div></section>'+
-   chartsHoy()+focusHoy()+btCard()+studyCard()+bancaCard()+
-   '<section class="card"><h3>Meta del mes</h3><div class="row"><b style="font-size:22px" class="'+cls(mon.net)+'">'+(mon.c?money(mon.net):'$0')+'</b><span class="muted">de '+plain(goal)+'</span></div><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div><p class="small muted" style="margin:0">Suma de los resultados anotados en el diario este mes. Cuando exista la Banca, aquí entrarán los cobros de las prop firms.</p></section>'+
-   '<section class="card"><h3>Pendientes</h3>'+(items.length?items.join(''):'<p class="muted" style="margin:0">Todo al día. Nada pendiente de cerrar.</p>')+'</section></div></div>';
+   accObjectivesCard()+chartsHoy()+focusHoy()+btCard()+studyCard()+'</div></div>';
   tick();
 }
 
