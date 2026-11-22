@@ -160,6 +160,9 @@ input[type=text],input[type=number],input[type=date],input[type=time],input[inpu
 .dcard{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:6px;background:var(--page2);border:1px solid var(--line);text-decoration:none;color:var(--ink);min-height:96px}
 .dcard .dn{font-family:var(--marker);font-size:16px;color:var(--yellow)}
 .dcard.off{opacity:.45}
+.rng{position:relative;height:10px;border-radius:3px;background:linear-gradient(90deg,rgba(255,90,95,.35),rgba(255,255,255,.06) 50%,rgba(79,209,161,.35));margin:16px 0 6px}
+.rng i{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:var(--yellow);transform:translateX(-50%)}
+.rng u{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}
 .hb{display:grid;grid-template-columns:minmax(84px,40%) 1fr auto;gap:8px;align-items:center;margin:7px 0;font-size:12.5px}
 .hb .hk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hb .ht{height:8px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden}
@@ -372,7 +375,7 @@ const failLabels=t=>[...new Set([...(t.errs||[]),...chkFails(t)])];
 const focusOf=mon=>(S.cfg.reviews[addD(mon,-7)]||{}).focus||'';
 const focusCount=(W,k)=>W.filter(t=>failLabels(t).includes(k)).length;
 const filters=()=>S.cfg.filters||[];
-const hourBand=t=>{const p=parts(t.ts,TZ_NY);return pad(p.h)+':'+(p.mi<30?'00':'30');};
+const hourBand=t=>{if(t.sd)return '';const p=parts(t.ts,TZ_NY);return pad(p.h)+':'+(p.mi<30?'00':'30');};
 const bandEnd=b=>{const h=+b.slice(0,2),m=+b.slice(3);return b.slice(3)==='00'?pad(h)+':30':pad(h+1)+':00';};
 const ruleHit=(f,t)=>f.k==='dow'?DOW[dowOf(t.date)]===f.v:f.k==='hora'?hourBand(t)===f.v:f.k==='htf'?!!(t.chk&&t.chk.htf===0):f.k==='emo'?t.pre===f.v:false;
 const filtersHit=t=>filters().filter(f=>ruleHit(f,t));
@@ -426,7 +429,7 @@ function btCard(){
 function renderHoy(){
   const t=todayES(),td=allReal().filter(x=>x.date===t),a=agg(td),mon=agg(allReal().filter(x=>x.date.slice(0,7)===t.slice(0,7)));
   const goal=S.cfg.goal,pct=Math.max(0,Math.min(100,100*mon.net/goal)),stk=streak();
-  const pend=allReal().filter(x=>x.res==null),norules=allReal().filter(x=>x.res!=null&&!x.rules).slice(0,3),due=reviewDue();
+  const pend=allReal().filter(x=>x.res==null),norules=allReal().filter(x=>x.res!=null&&!x.rules&&!x.sd).slice(0,3),due=reviewDue();
   const items=[];
   const ct=contractTodo(),stt=srsTodo(),nt=newsTodo();if(nt)items.push(nt);if(ct)items.push(ct);if(stt)items.push(stt);
   if(due)items.push('<a class="todo u" href="#revision" data-wk="'+due+'" style="text-decoration:none;color:inherit"><b>Revisión de la semana del '+niceDate(due)+'</b><span>Hacer</span></a>');
@@ -447,9 +450,10 @@ function renderHoy(){
 }
 
 function tradeRow(t){
-  const sd=t.kl?(t.kl+' · '+(!t.ifvg||t.ifvg==='Sin IFVG'?'sin IFVG':'IFVG '+t.ifvg)):((t.setup||[]).slice(0,3).join(' · ')||'Sin setup');
+  const sd=t.sd?'Día sin detalle':t.kl?(t.kl+' · '+(!t.ifvg||t.ifvg==='Sin IFVG'?'sin IFVG':'IFVG '+t.ifvg)):((t.setup||[]).slice(0,3).join(' · ')||'Sin setup');
   const tags=[];
   if(isPend(t))tags.push('<span class="tag neu">por completar</span>');
+  if(t.sd)tags.push('<span class="tag neu">sin detalle</span>');
   if(isReal(t)&&filtersHit(t).length)tags.push('<span class="tag bad">contra tu filtro</span>');
   if(t.kind)tags.push('<span class="tag">'+OP_TIPO_N[t.kind]+'</span>');
   if(t.risk>0)tags.push('<span class="tag">riesgo '+plain(t.risk)+(t.rr>0?' · '+rrTxt(t.rr):'')+'</span>');
@@ -463,7 +467,7 @@ function tradeRow(t){
   if(t.ex)tags.push('<span class="tag">ejemplo</span>');
   if(t.imp)tags.push('<span class="tag">Tradovate</span>');
   if(t.left>0)tags.push('<span class="tag neu">dejaste '+plain(t.left)+'</span>');
-  return '<button class="tr" data-act="edit" data-id="'+t.id+'"><span class="dir '+(t.side==='short'?'s':'')+'">'+(t.side==='short'?'V':'C')+'</span><span class="mid"><div class="t1">'+(t.kind==='bt'?dShort(t.date)+' ':'')+esc(t.time||'')+(t.kind==='bt'&&t.tz==='NY'?' NY':'')+' · '+esc(sd)+'</div><div class="t2">'+tags.join('')+'</div></span>'+
+  return '<button class="tr" '+(t.sd?'data-bk="sdedit|'+t.id+'"':'data-act="edit" data-id="'+t.id+'"')+'><span class="dir '+(t.side==='short'?'s':'')+'">'+(t.sd?'Σ':t.side==='short'?'V':'C')+'</span><span class="mid"><div class="t1">'+(t.kind==='bt'?dShort(t.date)+' ':'')+esc(t.time||'')+(t.kind==='bt'&&t.tz==='NY'?' NY':'')+' · '+esc(sd)+'</div><div class="t2">'+tags.join('')+'</div></span>'+
    '<span class="amt '+(t.res==null?'muted':cls(t.res))+'">'+(t.res==null?'abierta':money(t.res))+(typeof t.r==='number'?'<div class="small muted">'+(t.r>0?'+':t.r<0?'−':'')+Math.abs(t.r).toLocaleString('es-ES')+' R</div>':'')+'</span></button>';}
 
 function statSection(title,rows,note){
@@ -646,7 +650,7 @@ setInterval(tick,1000);
 
 /* ============ hoja de anotación ============ */
 let F=null;
-function blank(kind){const n=Date.now(),k=kind||S.cfg.lastKind||'',d=(S.cfg.last||{})[k]||{},bt=k==='bt';return{id:null,side:'',state:null,amt:'',r:'',risk:d.risk||S.cfg.lastRisk||'',rr:d.rr||S.cfg.lastRR||'',rrOther:false,amtAuto:true,kind:k,v:3,img:{},htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',tz:bt?(S.cfg.lastTz||'NY'):'ES',date:bt?(S.cfg.lastBtDate||''):dateOf(n),time:bt?(S.cfg.lastBtTime||''):hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
+function blank(kind){const n=Date.now(),k=kind||S.cfg.lastKind||'',d=(S.cfg.last||{})[k]||{},bt=k==='bt';const o={id:null,side:'',state:null,amt:'',r:'',risk:d.risk||S.cfg.lastRisk||'',rr:d.rr||S.cfg.lastRR||'',rrOther:false,amtAuto:true,kind:k,v:3,img:{},htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:'MNQ',tz:bt?(S.cfg.lastTz||'NY'):'ES',date:bt?(S.cfg.lastBtDate||''):dateOf(n),time:bt?(S.cfg.lastBtTime||''):hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};const l=instrFor(o.acc);o.instr=l.includes(S.cfg.instr)?S.cfg.instr:l[0];return o;}
 function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,amtAuto:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),img:Object.assign({},t.img||{}),kl:t.kl||'',ifvg:t.ifvg||'',conf:(t.conf||[]).slice(),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',tz:t.tz||'ES',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
 function openSheet(t,kind){F=t?fromTrade(t):blank(kind);renderSheet();$('#sheetWrap').hidden=false;document.body.classList.add('noscroll');}
 function closeSheet(){F=null;$('#sheetWrap').hidden=true;document.body.classList.remove('noscroll');}
@@ -663,6 +667,8 @@ function renderSheet(){
   const accs=accData().list;
   const accSel='<label class="field">Cuenta<select id="fAcc" style="min-height:44px;background:var(--page2);border:1px solid var(--line);border-radius:5px;padding:8px 12px"><option value="">—</option>'+accs.map(a=>'<option value="'+esc(a.id)+'"'+(a.id===F.acc?' selected':'')+'>'+esc(a.plan)+' · '+((ACC_ST[a.st]||{}).n||'')+'</option>').join('')+'</select></label>';
   const showAccInKind=F.kind&&F.kind!=='bt'&&accs.length;
+  const iList=F.kind==='bt'?INSTR_MKT.fut.concat(INSTR_MKT.cfd):instrFor(F.acc),iAll=iList.includes(F.instr)||!F.instr?iList:iList.concat(F.instr);
+  const instrBlock=F.kind?'<div style="margin-top:10px"><div class="lbl">Instrumento</div><div class="chips">'+iAll.map(v=>chip('instr',v,F.instr===v)).join('')+'</div></div>':'';
   const title=F.imp?'Completar operación'+(TVQ.length?' · quedan '+TVQ.length:''):(F.id?(F.pend?'Completar operación':'Editar operación'):'Anotar operación');
   const kick=t=>'<div class="lbl" style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mint)">'+t+'</div>';
   const ft={chk:F.chk,kind:F.kind},cs=chkSet(F.kind),sc8=chkScore(ft);
@@ -672,7 +678,7 @@ function renderSheet(){
   const fBanner=(!bt&&fcsNow?'<div class="insight">Esta semana trabajas: <b>'+esc(fcsNow)+'</b></div>':'')+fHits.map(f=>'<div class="insight bad">Ojo, va contra tu filtro: '+esc(filterLabel(f))+'</div>').join('');
   $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+title+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
    fBanner+kick('Al cerrar la operación')+
-   '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+'</div>'+btDay+
+   '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+instrBlock+'</div>'+btDay+
    '<div><div class="lbl">Dirección</div><div class="big2">'+chip('side','Compra',F.side==='long')+chip('side','Venta',F.side==='short')+'</div></div>'+
    '<div><div class="lbl">Riesgo ($) <span class="muted small">· lo que arriesgabas al entrar, hasta el stop</span></div><div class="row" style="flex-wrap:nowrap;gap:8px"><input id="fRisk" inputmode="decimal" value="'+esc(F.risk)+'" placeholder="500" style="flex:1;min-width:0">'+recent.map(v=>'<button type="button" class="chip'+(num(F.risk)===v?' on':'')+'" data-f="risk:'+v+'">'+plain(v)+'</button>').join('')+'</div></div>'+
    '<div><div class="lbl">RR planeado</div><div class="chips">'+RRS.map(v=>'<button type="button" class="chip'+(!rrCustom&&num(F.rr)===v?' on':'')+'" data-f="rr:'+v+'">'+rrTxt(v)+'</button>').join('')+'<button type="button" class="chip'+(rrCustom?' on':'')+'" data-f="rr:other">Otro</button></div>'+(rrCustom?'<div class="fgrid" style="margin-top:10px"><label class="field">RR (por ejemplo 1,8)<input id="fRR" inputmode="decimal" value="'+esc(F.rr)+'" placeholder="1,8"></label></div>':'')+'</div>'+
@@ -726,7 +732,7 @@ function saveForm(){
   if(TVQ.length){const nid=TVQ.shift();if(S.trades[nid])setTimeout(()=>openSheet(S.trades[nid]),300);}
 }
 document.addEventListener('input',e=>{if(!F)return;const m={fAmt:'amt',fR:'r',fRisk:'risk',fRR:'rr',fHtf:'htf',fLtf:'ltf',fNote:'note',fInstr:'instr',fDate:'date',fTime:'time',fAcc:'acc'}[e.target.id];if(m)F[m]=e.target.value;if(e.target.id==='fAmt')F.amtAuto=false;if(e.target.id==='fRisk'||e.target.id==='fRR'){suggestAmt();const ai=document.getElementById('fAmt');if(ai&&F.amtAuto!==false)ai.value=F.amt;}});
-document.addEventListener('change',e=>{if(F&&e.target&&/^fImg_/.test(e.target.id)){F.img[e.target.id.slice(5)]=e.target.value.trim();renderSheet();}});
+document.addEventListener('change',e=>{if(F&&e.target&&e.target.id==='fAcc'){F.acc=e.target.value;const l=instrFor(F.acc);if(!l.includes(F.instr))F.instr=l[0];renderSheet();return;}if(F&&e.target&&/^fImg_/.test(e.target.id)){F.img[e.target.id.slice(5)]=e.target.value.trim();renderSheet();}});
 document.addEventListener('paste',e=>{
   if(!F)return;
   const el=e.target,f=[...((e.clipboardData&&e.clipboardData.files)||[])].find(x=>/^image\//.test(x.type));
@@ -761,6 +767,7 @@ document.addEventListener('click',e=>{
     else if(k==='rr'){if(v==='other'){F.rrOther=true;F.rr='';}else{F.rrOther=false;F.rr=v;}suggestAmt();}
     else if(k==='kind'){const pk=F.kind;F.kind=F.kind===v?'':v;if(!F.id&&F.kind&&F.kind!==pk){const d=(S.cfg.last||{})[F.kind]||{};if(d.risk)F.risk=d.risk;if(d.rr)F.rr=d.rr;if(F.kind==='bt'){F.date=S.cfg.lastBtDate||'';F.time=S.cfg.lastBtTime||'';F.tz=S.cfg.lastTz||'NY';}else if(pk==='bt'){F.date=dateOf(Date.now());F.time=hm(Date.now());}suggestAmt();}}
     else if(k==='tz'){F.tz=v;}
+    else if(k==='instr'){F.instr=v;}
     else if(k==='btday'){if(v==='next')F.date=nextWk(F.date||dateOf(Date.now()));else if(v==='same'&&S.cfg.lastBtDate)F.date=S.cfg.lastBtDate;}
     else if(k==='full'){F.mode='full';}
     else if(k==='imgclear'){delete F.img[v];}
