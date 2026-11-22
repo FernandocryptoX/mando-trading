@@ -18,12 +18,19 @@ const INSTR_MKT={fut:['MNQ'],cfd:['XAUUSD','EURUSD','GBPUSD']};
 const instrFor=id=>{const a=id?accData().list.find(x=>x.id===id):null;return INSTR_MKT[a&&a.mkt==='cfd'?'cfd':'fut'];};
 
 /* ---------- estado de una cuenta: balance, mínimo permitido, objetivo, días y límite diario ---------- */
+/* día de trading: cambia a las 17:00 de Nueva York (cierre de Lucid y de Wall Street Funded), no a medianoche en España.
+   Los «días sin detalle» llevan ya su día y se respetan tal cual. */
+function tradeDay(t){
+  if(t.sd||!t.ts)return t.date;
+  const ny=dateOf(t.ts,TZ_NY),h=parts(t.ts,TZ_NY).h;
+  return h>=17?addD(ny,1):ny;
+}
 function accState(a){
   const start=+a.size||0;if(!start)return null;
   const T=Object.values(S.trades).filter(t=>t.acc===a.id&&t.res!=null),byD={};
-  T.forEach(t=>{byD[t.date]=(byD[t.date]||0)+t.res;});
+  T.forEach(t=>{const k=tradeDay(t);byD[k]=(byD[k]||0)+t.res;});
   const days=Object.keys(byD).sort(),pay=a.st==='funded'?accSum(a.payouts):0;
-  const today=dateOf(Date.now());let b=start,peak=start;days.forEach(d=>{b+=byD[d];if((a.live||d<today)&&b>peak)peak=b;});   // el mínimo solo sube al CIERRE del día: lo de hoy no cuenta aún
+  const today=tradeDay({ts:Date.now()});let b=start,peak=start;days.forEach(d=>{b+=byD[d];if((a.live||d<today)&&b>peak)peak=b;});   // el mínimo solo sube al CIERRE del día: lo de hoy no cuenta aún
   const bal=b-pay,dd=+a.dd||0;
   let min=null;if(dd){min=a.trail===false?start-dd:peak-dd;if(a.lockAt!=null&&a.lockAt!==''&&isFinite(+a.lockAt))min=Math.min(min,+a.lockAt);}
   const tn0=byD[today]||0,sod=bal-tn0,dlim=+a.dayPct>0?Math.round(sod*(+a.dayPct))/100:(+a.dayLim||0);

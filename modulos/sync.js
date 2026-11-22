@@ -49,6 +49,40 @@ function accBackupNow(why){
   }catch(e){}
 }
 
+/* ---------- apuntes, checks, revisiones y noticias: se fusionan entrada a entrada (cada una lleva su marca de edición) ---------- */
+const TRACK=['notes','checks','profile','stamps','rolled','reviews','mrev','news'];
+var TRSIG={},TR_READY=false;
+function trFlatOf(k,v){
+  v=v||{};
+  if(k==='news'){const o={};Object.keys(v.days||{}).forEach(x=>{o['d:'+x]=v.days[x];});Object.keys(v.reviewed||{}).forEach(x=>{o['r:'+x]=v.reviewed[x];});return o;}
+  return v;
+}
+function trSet(k,flat){
+  if(k==='news'){const N=S.cfg.news=S.cfg.news||{};N.days={};N.reviewed={};Object.keys(flat).forEach(x=>{(x[0]==='d'?N.days:N.reviewed)[x.slice(2)]=flat[x];});return;}
+  S.cfg[k]=flat;
+}
+function trSigs(){const o={};TRACK.forEach(k=>{const f=trFlatOf(k,S.cfg[k]),s={};Object.keys(f).forEach(x=>{s[x]=JSON.stringify(f[x]);});o[k]=s;});return o;}
+function trStamp(){
+  const cur=trSigs(),m=cloudMeta();m.us=m.us||{};
+  if(!TR_READY){TRSIG=cur;TR_READY=true;return;}
+  TRACK.forEach(k=>{const u=m.us[k]=m.us[k]||{};Object.keys(cur[k]).forEach(x=>{if((TRSIG[k]||{})[x]!==cur[k][x])u[x]=Date.now();});TRSIG[k]=cur[k];});
+}
+function trMerge(k,remJ,remUs){
+  let rem=null;try{rem=JSON.parse(remJ);}catch(e){return null;}
+  const R=trFlatOf(k,rem),L=trFlatOf(k,S.cfg[k]),m=cloudMeta();m.us=m.us||{};const lus=m.us[k]=m.us[k]||{},out={};
+  let toLocal=false,toRemote=false;
+  Object.keys(Object.assign({},L,R)).forEach(x=>{
+    const hl=x in L,hr=x in R;
+    if(hl&&hr){
+      if(JSON.stringify(L[x])===JSON.stringify(R[x])){out[x]=L[x];if((remUs[x]||0)>(lus[x]||0))lus[x]=remUs[x];return;}
+      const lu=lus[x]||0,ru=remUs[x]||0;
+      if(ru>lu){out[x]=R[x];lus[x]=ru;toLocal=true;}else{out[x]=L[x];if(lu>ru)toRemote=true;}
+    }else if(hl){out[x]=L[x];toRemote=true;}
+    else{out[x]=R[x];lus[x]=remUs[x]||0;toLocal=true;}
+  });
+  return{out,toLocal,toRemote};
+}
+
 function cloudMeta(){S.sync=S.sync||{};S.sync.cu=S.sync.cu||{};S.sync.tomb=S.sync.tomb||{};return S.sync;}
 function cloudErr(e){CLOUD.lastErr=(e&&(e.code||e.message))||'error';setSync('err');}
 const cloudEmpty=j=>j===undefined||j==='{}'||j==='[]'||j==='null'||j==='""'||j==='0'||j==='false';
@@ -73,7 +107,7 @@ function cloudCfg(){
 }
 function cloudPushKey(k){
   const m=cloudMeta(),j=JSON.stringify(S.cfg[k]),u=m.cu[k]||1;
-  CLOUD.fs.collection(CLOUD.base+'/mando_cfg').doc(k).set({j,u}).then(()=>{m.lastj[k]=j;saveLocal();}).catch(cloudErr);
+  CLOUD.fs.collection(CLOUD.base+'/mando_cfg').doc(k).set(Object.assign({j,u},TRACK.includes(k)?{us:Object.assign({},(m.us||{})[k]||{})}:{})).then(()=>{m.lastj[k]=j;saveLocal();}).catch(cloudErr);
 }
 function cloudFlushCfg(){
   if(!CLOUD.ready)return;
@@ -128,6 +162,16 @@ function cloudApplyCfg(snap){
     const k=doc.id,d=doc.data()||{};
     if(CLOUD_SKIP.includes(k)||typeof d.j!=='string')return;
     seen[k]=1;
+    if(TRACK.includes(k)){
+      const mg=trMerge(k,d.j,d.us||{});
+      if(mg){
+        if(mg.toLocal){cloudBackupOnce();trSet(k,mg.out);changed=true;TRSIG[k]=trSigs()[k];}
+        m.lastj[k]=d.j;
+        if(mg.toRemote){m.cu[k]=Date.now();cloudFlushCfg();}
+        else{m.cu[k]=d.u||0;m.lastj[k]=JSON.stringify(S.cfg[k]);}
+        return;
+      }
+    }
     if(k==='acc'){
       let rem=null;try{rem=JSON.parse(d.j);}catch(e){}
       if(rem){
