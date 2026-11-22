@@ -534,8 +534,8 @@ setInterval(tick,1000);
 
 /* ============ hoja de anotación ============ */
 let F=null;
-function blank(kind){const n=Date.now(),k=kind||S.cfg.lastKind||'',d=(S.cfg.last||{})[k]||{},bt=k==='bt';return{id:null,side:'',state:null,amt:'',r:'',risk:d.risk||S.cfg.lastRisk||'',rr:d.rr||S.cfg.lastRR||'',rrOther:false,kind:k,v:2,htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:bt?(S.cfg.lastBtDate||''):dateOf(n),time:bt?(S.cfg.lastBtTime||''):hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
-function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),kl:t.kl||'',ifvg:t.ifvg||'',conf:(t.conf||[]).slice(),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
+function blank(kind){const n=Date.now(),k=kind||S.cfg.lastKind||'',d=(S.cfg.last||{})[k]||{},bt=k==='bt';return{id:null,side:'',state:null,amt:'',r:'',risk:d.risk||S.cfg.lastRisk||'',rr:d.rr||S.cfg.lastRR||'',rrOther:false,amtAuto:true,kind:k,v:2,htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:bt?(S.cfg.lastBtDate||''):dateOf(n),time:bt?(S.cfg.lastBtTime||''):hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
+function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,amtAuto:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),kl:t.kl||'',ifvg:t.ifvg||'',conf:(t.conf||[]).slice(),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
 function openSheet(t,kind){F=t?fromTrade(t):blank(kind);renderSheet();$('#sheetWrap').hidden=false;document.body.classList.add('noscroll');}
 function closeSheet(){F=null;$('#sheetWrap').hidden=true;document.body.classList.remove('noscroll');}
 const chip=(g,v,on,tone)=>'<button type="button" class="chip '+(tone||'')+(on?' on':'')+'" data-f="'+g+':'+esc(v)+'" aria-pressed="'+(on?'true':'false')+'">'+esc(v)+'</button>';
@@ -557,12 +557,12 @@ function renderSheet(){
   const chkBlock='<div><div class="lbl">Checklist del trade · <b>'+(sc8!=null?'Proceso '+sc8+'/'+cs.length:chkN(ft)+'/'+cs.length+' respondidas')+'</b></div>'+cs.map(q=>'<div class="chkq"><span>'+q[1]+'</span><div class="chips"><button type="button" class="chip '+(q[2]===1?'good':'bad')+(F.chk[q[0]]===1?' on':'')+'" data-f="chk:'+q[0]+':1">Sí</button><button type="button" class="chip '+(q[2]===0?'good':'bad')+(F.chk[q[0]]===0?' on':'')+'" data-f="chk:'+q[0]+':0">No</button></div></div>').join('')+'</div>';
   $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+title+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
    kick('Al cerrar la operación')+
-   '<div><div class="lbl">Dirección</div><div class="big2">'+chip('side','Compra',F.side==='long')+chip('side','Venta',F.side==='short')+'</div></div>'+
-   '<div><div class="lbl">Resultado</div><div class="chips">'+[['win','Ganada','good'],['loss','Perdida','bad'],['be','Break even',''],['open','Aún abierta','']].map(x=>'<button type="button" class="chip '+x[2]+(F.state===x[0]?' on':'')+'" data-f="state:'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'+
-   (F.state==='win'||F.state==='loss'?'<div class="fgrid" style="margin-top:10px"><label class="field">Importe ($)<input id="fAmt" inputmode="decimal" value="'+esc(F.amt)+'" placeholder="300"></label></div>':'')+'</div>'+
-   '<div><div class="lbl">Riesgo ($) · lo que perdías si saltaba el stop</div><div class="row" style="flex-wrap:nowrap;gap:8px"><input id="fRisk" inputmode="decimal" value="'+esc(F.risk)+'" placeholder="500" style="flex:1;min-width:0">'+recent.map(v=>'<button type="button" class="chip'+(num(F.risk)===v?' on':'')+'" data-f="risk:'+v+'">'+plain(v)+'</button>').join('')+'</div></div>'+
-   '<div><div class="lbl">RR planeado</div><div class="chips">'+RRS.map(v=>'<button type="button" class="chip'+(!rrCustom&&num(F.rr)===v?' on':'')+'" data-f="rr:'+v+'">'+rrTxt(v)+'</button>').join('')+'<button type="button" class="chip'+(rrCustom?' on':'')+'" data-f="rr:other">Otro</button></div>'+(rrCustom?'<div class="fgrid" style="margin-top:10px"><label class="field">RR (por ejemplo 1,8)<input id="fRR" inputmode="decimal" value="'+esc(F.rr)+'" placeholder="1,8"></label></div>':'')+'</div>'+
    '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+'</div>'+btDay+
+   '<div><div class="lbl">Dirección</div><div class="big2">'+chip('side','Compra',F.side==='long')+chip('side','Venta',F.side==='short')+'</div></div>'+
+   '<div><div class="lbl">Riesgo ($) <span class="muted small">· lo que arriesgabas al entrar, hasta el stop</span></div><div class="row" style="flex-wrap:nowrap;gap:8px"><input id="fRisk" inputmode="decimal" value="'+esc(F.risk)+'" placeholder="500" style="flex:1;min-width:0">'+recent.map(v=>'<button type="button" class="chip'+(num(F.risk)===v?' on':'')+'" data-f="risk:'+v+'">'+plain(v)+'</button>').join('')+'</div></div>'+
+   '<div><div class="lbl">RR planeado</div><div class="chips">'+RRS.map(v=>'<button type="button" class="chip'+(!rrCustom&&num(F.rr)===v?' on':'')+'" data-f="rr:'+v+'">'+rrTxt(v)+'</button>').join('')+'<button type="button" class="chip'+(rrCustom?' on':'')+'" data-f="rr:other">Otro</button></div>'+(rrCustom?'<div class="fgrid" style="margin-top:10px"><label class="field">RR (por ejemplo 1,8)<input id="fRR" inputmode="decimal" value="'+esc(F.rr)+'" placeholder="1,8"></label></div>':'')+'</div>'+
+   '<div><div class="lbl">Resultado</div><div class="chips">'+[['win','Ganada','good'],['loss','Perdida','bad'],['be','Break even',''],['open','Aún abierta','']].map(x=>'<button type="button" class="chip '+x[2]+(F.state===x[0]?' on':'')+'" data-f="state:'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'+
+   (F.state==='win'||F.state==='loss'?'<div class="fgrid" style="margin-top:10px"><label class="field">'+(F.state==='loss'?'Importe perdido ($)':'Importe ganado ($)')+'<input id="fAmt" inputmode="decimal" value="'+esc(F.amt)+'" placeholder="300"></label></div><p class="small muted" style="margin:6px 0 0">'+(F.state==='loss'?'Escríbelo en positivo. Si saltó el stop, es igual que el riesgo; cámbialo si cerraste antes.':'Escríbelo en positivo. Sale riesgo × RR; cámbialo si cerraste antes o en otro punto.')+'</p>':'')+'</div>'+
    '<div><div class="lbl">¿Cómo te sentías durante la operación? <span class="muted small">(puedes marcar varias)</span></div><div class="chips">'+EMOS.map(e=>chip('dur',e[0],F.dur.includes(e[0]),e[1])).join('')+'</div></div>'+
    '<div><div class="lbl">¿Seguiste tus reglas?</div><div class="chips">'+Object.keys(RULES).map(k=>'<button type="button" class="chip '+(k==='si'?'good':k==='no'?'bad':'')+(F.rules===k?' on':'')+'" data-f="rules:'+k+'">'+RULES[k]+'</button>').join('')+'</div>'+
    (F.rules==='part'||F.rules==='no'?'<div class="lbl" style="margin-top:12px">¿Qué falló?</div><div class="chips">'+ERRS.map(e=>chip('err',e,F.errs.includes(e),'bad')).join('')+'</div>':'')+'</div>'+
@@ -581,6 +581,7 @@ function renderSheet(){
    '</div><div class="sh-foot">'+(F.id?'<button type="button" class="btn danger" data-f="del">'+(F.del?'Confirmar borrado':'Borrar')+'</button>':'')+'<button type="button" class="btn pri" data-f="save">Guardar operación</button></div>';
   const nb=$('.sh-body');if(nb)nb.scrollTop=sc;
 }
+function suggestAmt(){if(F.amtAuto===false)return;const rk=num(F.risk),rr=num(F.rr);if(F.state==='loss'&&rk>0)F.amt=String(rk);else if(F.state==='win'&&rk>0&&rr>0)F.amt=String(Math.round(rk*rr*100)/100);}
 function saveForm(){
   if(!F.side){toast('Elige compra o venta');return;}
   if(!F.state){toast('Elige el resultado (o «Aún abierta»)');return;}
@@ -608,7 +609,7 @@ function saveForm(){
   toast(isPend(t)?'Guardada · queda por completar (qué viste y emociones)':'Operación guardada');
   if(TVQ.length){const nid=TVQ.shift();if(S.trades[nid])setTimeout(()=>openSheet(S.trades[nid]),300);}
 }
-document.addEventListener('input',e=>{if(!F)return;const m={fAmt:'amt',fR:'r',fRisk:'risk',fRR:'rr',fHtf:'htf',fLtf:'ltf',fNote:'note',fInstr:'instr',fDate:'date',fTime:'time',fAcc:'acc'}[e.target.id];if(m)F[m]=e.target.value;});
+document.addEventListener('input',e=>{if(!F)return;const m={fAmt:'amt',fR:'r',fRisk:'risk',fRR:'rr',fHtf:'htf',fLtf:'ltf',fNote:'note',fInstr:'instr',fDate:'date',fTime:'time',fAcc:'acc'}[e.target.id];if(m)F[m]=e.target.value;if(e.target.id==='fAmt')F.amtAuto=false;if(e.target.id==='fRisk'||e.target.id==='fRR'){suggestAmt();const ai=document.getElementById('fAmt');if(ai&&F.amtAuto!==false)ai.value=F.amt;}});
 document.addEventListener('click',e=>{
   const f=e.target.closest('[data-f]');
   if(f&&F){
@@ -618,14 +619,14 @@ document.addEventListener('click',e=>{
     if(k==='more'){F.more=!F.more;}
     else if(k==='del'){if(!F.del){F.del=true;}else{delTrade(F.id);closeSheet();softRender();toast('Operación borrada');return;}}
     else if(k==='side'){F.side=v==='Compra'?'long':'short';}
-    else if(k==='state'){F.state=v;}
+    else if(k==='state'){F.state=v;suggestAmt();}
     else if(k==='setup'){F.setup=F.setup.includes(v)?F.setup.filter(x=>x!==v):F.setup.concat(v);}
     else if(k==='err'){F.errs=F.errs.includes(v)?F.errs.filter(x=>x!==v):F.errs.concat(v);}
     else if(k==='pre'||k==='post'){F[k]=F[k]===v?'':v;}
     else if(k==='dur'){F.dur=F.dur.includes(v)?F.dur.filter(x=>x!==v):F.dur.concat(v);}
-    else if(k==='risk'){F.risk=String(v);}
-    else if(k==='rr'){if(v==='other'){F.rrOther=true;F.rr='';}else{F.rrOther=false;F.rr=v;}}
-    else if(k==='kind'){const pk=F.kind;F.kind=F.kind===v?'':v;if(!F.id&&F.kind&&F.kind!==pk){const d=(S.cfg.last||{})[F.kind]||{};if(d.risk)F.risk=d.risk;if(d.rr)F.rr=d.rr;if(F.kind==='bt'){F.date=S.cfg.lastBtDate||'';F.time=S.cfg.lastBtTime||'';}else if(pk==='bt'){F.date=dateOf(Date.now());F.time=hm(Date.now());}}}
+    else if(k==='risk'){F.risk=String(v);suggestAmt();}
+    else if(k==='rr'){if(v==='other'){F.rrOther=true;F.rr='';}else{F.rrOther=false;F.rr=v;}suggestAmt();}
+    else if(k==='kind'){const pk=F.kind;F.kind=F.kind===v?'':v;if(!F.id&&F.kind&&F.kind!==pk){const d=(S.cfg.last||{})[F.kind]||{};if(d.risk)F.risk=d.risk;if(d.rr)F.rr=d.rr;if(F.kind==='bt'){F.date=S.cfg.lastBtDate||'';F.time=S.cfg.lastBtTime||'';}else if(pk==='bt'){F.date=dateOf(Date.now());F.time=hm(Date.now());}suggestAmt();}}
     else if(k==='btday'){if(v==='next')F.date=nextWk(F.date||dateOf(Date.now()));else if(v==='same'&&S.cfg.lastBtDate)F.date=S.cfg.lastBtDate;}
     else if(k==='full'){F.mode='full';}
     else if(k==='kl'){F.kl=F.kl===v?'':v;}
