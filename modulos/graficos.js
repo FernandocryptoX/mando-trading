@@ -65,3 +65,99 @@ function chartsStats(cl){
     '<section class="card"><h3>Por día de la semana</h3>'+chartBars(dow)+'<p class="small muted" style="margin:8px 0 0">Resultado de cada día y número de operaciones. Las barras apagadas tienen menos de 5: es ruido.</p></section>'+
     '<section class="card"><h3>Por franja horaria (Nueva York)</h3>'+chartBars(bands)+'<p class="small muted" style="margin:8px 0 0">Franjas de 30 minutos. Con pocas operaciones no saques conclusiones.</p></section>';
 }
+
+/* ===== Fase visual 2: gráficas por apartado ===== */
+/* barras horizontales: rows [{k, v, t, c}] (v = magnitud, t = texto a la derecha, c = color) */
+function hbars(rows){
+  if(!rows.length)return '';
+  const mx=Math.max(1,...rows.map(r=>Math.abs(r.v)));
+  return '<div>'+rows.map(r=>'<div class="hb"><span class="hk" title="'+esc(r.k)+'">'+esc(r.k)+'</span><div class="ht"><i style="width:'+Math.max(2,100*Math.abs(r.v)/mx).toFixed(0)+'%;background:'+(r.c||'var(--yellow)')+'"></i></div><b>'+esc(r.t)+'</b></div>').join('')+'</div>';
+}
+
+/* columnas con valor encima y etiqueta debajo: bins [{k, n, c}] */
+function chartHist(bins){
+  if(!bins.length||bins.every(b=>!b.n))return '<p class="muted small" style="margin:0">Aún no hay datos suficientes.</p>';
+  const W=300,H=110,top=14,bot=18,ph=H-top-bot,n=bins.length,bw=Math.min(30,W/n-8),mx=Math.max(1,...bins.map(b=>b.n));
+  const o=bins.map((b,i)=>{const cx=(i+.5)*W/n,h=Math.max(b.n?2:0,b.n/mx*ph),y=top+ph-h;
+    return '<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="'+(b.c||'var(--yellow)')+'" fill-opacity=".85"/>'+
+      (b.n?'<text x="'+cx.toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle" fill="var(--muted)" font-size="10">'+b.n+'</text>':'')+
+      '<text x="'+cx.toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" fill="var(--ink)" font-size="10">'+esc(b.k)+'</text>';}).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Distribución"><line x1="0" x2="'+W+'" y1="'+(top+ph)+'" y2="'+(top+ph)+'" stroke="rgba(255,255,255,.2)"/>'+o+'</svg>';
+}
+
+/* calendario del mes: verde gana, rojo pierde, gris sin operar */
+function chartCal(key,list){
+  const y=+key.slice(0,4),m=+key.slice(5,7),dim=new Date(Date.UTC(y,m,0)).getUTCDate(),off=(dowOf(key+'-01')+6)%7,by={};
+  closed(list).forEach(t=>{if(t.date.slice(0,7)===key)by[+t.date.slice(8,10)]=(by[+t.date.slice(8,10)]||0)+t.res;});
+  const mx=Math.max(1,...Object.values(by).map(Math.abs));
+  let c='';for(let i=0;i<off;i++)c+='<div class="cl e"></div>';
+  for(let d=1;d<=dim;d++){const v=by[d],has=v!==undefined,a=has?(.22+.6*Math.min(1,Math.abs(v)/mx)).toFixed(2):0;
+    c+='<div class="cl'+(has?'':' e')+'"'+(has?' style="background:'+(v>=0?'rgba(79,209,161,':'rgba(255,90,95,')+a+')" title="'+d+': '+esc(money(v))+'"':'')+'><span>'+d+'</span>'+(has?'<b>'+esc(sh(v))+'</b>':'')+'</div>';}
+  return '<div class="calh"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div class="calg">'+c+'</div>';
+}
+
+/* Diario · Real: resumen del mes y calendario */
+function chartsReal(R){
+  const key=todayES().slice(0,7),M=R.filter(t=>t.date.slice(0,7)===key);
+  if(!closed(M).length)return '';
+  const a=agg(M);
+  return '<section class="card"><h3>'+esc(mLabel(key))+'</h3><div class="stats">'+stat('Resultado',money(a.net),cls(a.net))+stat('Aciertos',a.win==null?'—':Math.round(a.win)+' %')+stat('Factor beneficio',a.pf==null?'—':a.pf.toFixed(2).replace('.',','))+'</div><div style="margin-top:14px">'+chartCal(key,M)+'</div><p class="small muted" style="margin:8px 0 0">Verde: día ganador. Rojo: día perdedor. Gris: sin operar.</p></section>';
+}
+
+/* Backtesting: curva, distribución de R y aciertos por key level */
+function chartsBt(B){
+  const cl=closed(B).sort((a,b)=>a.ts-b.ts);
+  if(cl.length<2)return '';
+  let c=0;const vals=[0].concat(cl.map(x=>(c+=x.res)));
+  const rs=cl.filter(t=>typeof t.r==='number'),lab=['≤−3','−2','−1','0','+1','+2','≥+3'];
+  const bins=lab.map((k,i)=>({k,n:0,c:i<3?'var(--bad)':i===3?'#8a8f98':'var(--good)'}));
+  rs.forEach(t=>{bins[Math.max(0,Math.min(6,Math.round(t.r)+3))].n++;});
+  const kl=group(cl.filter(t=>t.kl),t=>t.kl).sort((x,y)=>y.c-x.c).map(r=>({k:r.k+(r.c<5?' (pocas)':''),v:r.win||0,t:Math.round(r.win||0)+' % · '+r.c,c:(r.win||0)>=50?'var(--good)':'var(--yellow)'}));
+  return '<section class="card"><h3>Curva del backtesting</h3>'+chartLine(vals)+'</section>'+
+    (rs.length>=3?'<section class="card"><h3>Distribución de R</h3>'+chartHist(bins)+'<p class="small muted" style="margin:8px 0 0">Cuántas operaciones acabaron en cada R. Lo sano: más barras verdes que rojas y pocas pérdidas peores que −1.</p></section>':'')+
+    (kl.length?'<section class="card"><h3>Aciertos por key level</h3>'+hbars(kl)+'<p class="small muted" style="margin:8px 0 0">Porcentaje de operaciones ganadas y número de operaciones. Con menos de 5 es ruido.</p></section>':'');
+}
+
+/* Banca: gastado frente a cobrado por prop firm y embudo de cuentas */
+function chartsBanca(L){
+  if(!L.length)return '';
+  const firms={};L.forEach(a=>{(firms[a.firm]=firms[a.firm]||[]).push(a);});
+  const rows=[];Object.keys(firms).forEach(f=>{const s=accStats(firms[f]);rows.push({k:f+' · gastado',v:s.spent,t:plain(s.spent),c:'var(--bad)'},{k:f+' · cobrado',v:s.got,t:plain(s.got),c:'var(--good)'});});
+  const s=accStats(L),paid=L.filter(a=>accSum(a.payouts)>0).length;
+  return '<section class="card"><h3>Gastado y cobrado por prop firm</h3>'+hbars(rows)+'</section>'+
+    '<section class="card"><h3>Embudo de cuentas</h3>'+hbars([{k:'Compradas',v:s.n,t:String(s.n)},{k:'Pasaron a funded',v:s.passed,t:String(s.passed),c:'var(--mint)'},{k:'Cobraron',v:paid,t:String(paid),c:'var(--good)'}])+'<p class="small muted" style="margin:8px 0 0">Cuántas cuentas llegan a cada paso. Si te quedas en la primera barra, el negocio no sale.</p></section>';
+}
+
+/* Conclusiones: proceso×resultado, lo que más te cuesta y resultado según confluencias */
+function chartsProceso(cl){
+  const pc=cl.filter(chkDone);let h='';
+  if(pc.length>=3){
+    const cell=(good,win)=>{const g=pc.filter(t=>chkGood(t)===good&&(win?t.res>0:t.res<=0));return{c:g.length,n:g.reduce((x,t)=>x+t.res,0)};};
+    const q=(l,x,bg,col)=>'<div class="mx" style="background:'+bg+'"><small>'+l+'</small><b style="color:'+col+'">'+x.c+(x.c?' · '+esc(sh(x.n)):'')+'</b></div>';
+    h+='<section class="card"><h3>Proceso del checklist y resultado</h3><div class="mxg">'+q('Buen proceso · ganas',cell(true,true),'rgba(79,209,161,.12)','var(--good)')+q('Buen proceso · pierdes',cell(true,false),'rgba(255,165,38,.1)','var(--ink)')+q('Proceso flojo · ganas',cell(false,true),'rgba(255,165,38,.1)','var(--ink)')+q('Proceso flojo · pierdes',cell(false,false),'rgba(255,90,95,.12)','var(--bad)')+'</div><p class="small muted" style="margin:8px 0 0">Perder con buen proceso es normal. Ganar con proceso flojo es suerte.</p></section>';
+    const fl=group(pc,t=>chkFails(t)).filter(x=>x.net<0).sort((x,y)=>x.net-y.net).slice(0,5).map(r=>({k:r.k,v:-r.net,t:money(r.net)+' · '+r.c,c:'var(--bad)'}));
+    if(fl.length)h+='<section class="card"><h3>Lo que más te cuesta</h3>'+hbars(fl)+'</section>';
+  }
+  const sk=cl.filter(t=>t.kl);
+  if(sk.length>=3){
+    const rows=group(sk,t=>{const n=(t.conf||[]).length;return n<=2?'0-2':n<=4?'3-4':'5+';}).sort((x,y)=>x.k<y.k?-1:1).map(r=>({k:r.k,net:r.net,c:r.c,win:r.win,full:r.k+' confluencias'}));
+    h+='<section class="card"><h3>Resultado según confluencias</h3>'+chartBars(rows)+'<p class="small muted" style="margin:8px 0 0">Resultado según cuántas confluencias llevabas.</p></section>';
+  }
+  return h;
+}
+
+/* Revisión semanal: resultado por día y evolución de tu foco */
+function chartsSemana(mon,W){
+  const rows=[1,2,3,4,5].map(i=>{const d=addD(mon,i-1),r=agg(W.filter(t=>t.date===d));return{k:DOW[i].slice(0,3),net:r.net,c:r.c,win:r.win,full:DOW[i]};});
+  let h='<section class="card"><h3>Resultado por día</h3>'+chartBars(rows)+'</section>';
+  const cur=focusOf(mon);
+  if(cur){const bins=[];for(let i=7;i>=0;i--){const m=addD(mon,-7*i),n=focusCount(allReal().filter(t=>inWeek(t,m)),cur);bins.push({k:m.slice(8,10)+'/'+m.slice(5,7),n,c:'var(--yellow)'});}
+    h+='<section class="card"><h3>Mi foco, semana a semana</h3>'+chartHist(bins)+'<p class="small muted" style="margin:8px 0 0">Veces que apareció «'+esc(cur)+'» en las últimas 8 semanas. Tiene que ir bajando.</p></section>';}
+  return h;
+}
+
+/* Revisión mensual: calendario y errores */
+function chartsMes(key,M){
+  const errs=group(closed(M),t=>failLabels(t)).sort((x,y)=>x.net-y.net||y.c-x.c).slice(0,5).filter(e=>e.net<0).map(e=>({k:e.k,v:-e.net,t:money(e.net)+' · '+e.c,c:'var(--bad)'}));
+  return '<section class="card"><h3>Calendario del mes</h3>'+chartCal(key,M)+'</section>'+(errs.length?'<section class="card"><h3>Dinero que te costó cada error</h3>'+hbars(errs)+'</section>':'');
+}
