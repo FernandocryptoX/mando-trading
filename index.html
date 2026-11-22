@@ -873,7 +873,7 @@ function doBackup(){
 function pasteData(){
   dialog('<h2 style="font-size:28px">Pegar datos</h2><p class="small muted">Pega aquí el texto que copiaste con «Copiar todos mis datos» en el otro dispositivo.</p><textarea id="pdTxt" style="width:100%;min-height:150px;background:var(--page2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:12px monospace" placeholder="{&quot;app&quot;:&quot;centro-de-mando&quot;…"></textarea>',
     [{label:'Cancelar'},{label:'Continuar',primary:true,run:()=>{
-      try{const o=JSON.parse(document.getElementById('pdTxt').value.trim());if(!o||!o.trades||!o.cfg)throw 0;askReplace(o,'Cargar los datos pegados');}
+      try{const o=JSON.parse(document.getElementById('pdTxt').value.trim());if(o&&Array.isArray(o.orders)){ordersDialog(o);return;}if(!o||!o.trades||!o.cfg)throw 0;askReplace(o,'Cargar los datos pegados');}
       catch(e){toast('Ese texto no parece una copia de la app');return false;}
     }}]);
 }

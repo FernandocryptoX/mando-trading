@@ -267,3 +267,54 @@ function accRestoreDialog(){
       (bk.list||[]).forEach(a=>{if(a&&a.id&&!A.list.some(x=>x.id===a.id)){A.list.push(JSON.parse(JSON.stringify(a)));if(A.del)delete A.del[a.id];n++;}});
       if(n)saveCfg();renderBanca();toast(n?'Recuperadas '+n+(n===1?' cuenta':' cuentas'):'No faltaba ninguna cuenta');}}]);
 }
+
+/* ---------- importar pedidos y días desde un texto pegado (los datos NO están en el código: vienen del texto) ----------
+   Formato: {"app":"centro-de-mando","orders":[{n,match,tpl,plan,date,price,disc,paid,coupon,pay,note,st,main,dayLim,cons,days:[[fecha,importe]]}]}
+   Idempotente: si ya existe la cuenta (por nº de pedido o por nombre) la actualiza; si no, la crea; los días se identifican por cuenta y fecha. */
+function ordersPlan(o){
+  const list=accData().list,used=new Set(),nT=x=>Object.values(S.trades).filter(t=>t.acc===x.id).length;
+  return (o.orders||[]).map(od=>{
+    const re=new RegExp(od.match||'$^','i');let a=od.n?list.find(x=>x.order===od.n&&!used.has(x.id)):null;
+    if(!a){
+      let pool=list.filter(x=>!used.has(x.id)&&(od.n?!x.order:true)&&re.test(x.firm+' '+x.plan));
+      if(od.main)pool=pool.sort((p,q)=>nT(q)-nT(p));
+      a=pool[0]||null;
+    }
+    if(a)used.add(a.id);
+    return{od,a};
+  });
+}
+function ordersApply(o){
+  const acc=accData();let cr=0,up=0,dy=0;
+  ordersPlan(o).forEach(x=>{
+    const od=x.od,tpl=ACC_TPL[od.tpl]||{};
+    const d=Object.assign({},tpl,{st:undefined},{firm:od.firm||tpl.firm,plan:od.plan||tpl.plan,plat:od.plat||'',date:od.date,order:od.n||'',price:od.price,disc:od.disc||0,paid:od.paid,coupon:od.coupon||'',pay:od.pay||'',note:od.note||''});
+    ['dayLim','cons','size'].forEach(k=>{if(od[k]!==undefined)d[k]=od[k];});
+    let a=x.a;
+    if(!a){a=accCreate(acc.list,d);if(od.st==='funded'){a.st='funded';a.hist[0].st='funded';}cr++;}
+    else{
+      const n=accCreate([],d);
+      ['firm','plan','plat','date','order','price','disc','paid','coupon','pay','note'].forEach(k=>{a[k]=n[k];});
+      ['size','mkt','dd','trail','live','lockAt','lossN','target','dayLim','dayPct','minDays','profDay','cons','maxRisk','firstPay','payEvery','split','newsMin','norms'].forEach(k=>{if(a[k]==null||a[k]===''||a[k]===undefined)a[k]=n[k];});
+      if(a.hist&&a.hist.length&&a.hist[0].note==='Compra')a.hist[0].ts=accTs(od.date);
+      up++;
+    }
+    if(od.st==='lost'&&a.st!=='lost'){a.st='lost';a.hist.push({ts:accTs(od.date),st:'lost',note:'Perdida (fecha sin confirmar)'});}
+    (od.days||[]).forEach(dd=>{
+      const id='sd-'+(od.n||od.match)+'-'+dd[0].replace(/\W/g,''),
+        ex=Object.values(S.trades).filter(t=>t.acc===a.id&&t.date===dd[0]&&t.res!=null&&t.id!==id).reduce((s,t)=>s+t.res,0),
+        add=Math.round((dd[1]-ex)*100)/100;
+      if(Math.abs(add)>=0.005){sdSave(a,dd[0],add,'Día sin detalle',id,S.trades[id]&&S.trades[id].cr);dy++;}else if(S.trades[id])delTrade(id);
+    });
+  });
+  saveCfg();
+  return{cr,up,dy};
+}
+function ordersDialog(o){
+  const f2=n=>'$'+n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const plan=ordersPlan(o),tot=plan.reduce((s,x)=>s+(+x.od.paid||0),0);
+  dialog('<h2 style="font-size:22px">Cargar pedidos y días</h2><p class="small muted">Pone en cada cuenta su pedido, precio, descuento y cupón, crea las que falten y añade los días sin detalle. Si ya existe, la actualiza: no se duplica nada.</p>'+
+    plan.map(x=>'<div class="srow"><span class="sn">'+esc(x.od.plan||'')+'</span><span class="sm">'+(x.a?'actualizo':'creo')+(x.od.st==='lost'?' · perdida':'')+((x.od.days||[]).length?' · '+x.od.days.length+' días':'')+'</span><b>'+f2(+x.od.paid||0)+'</b></div>').join('')+
+    '<p style="margin:12px 0 0"><b>Gastado en estos pedidos: '+f2(tot)+'</b></p>',
+    [{label:'Cancelar'},{label:'Cargar',primary:true,run:()=>{const r=ordersApply(o);render();toast('Hecho: '+r.cr+' creadas, '+r.up+' actualizadas, '+r.dy+' días · gastado '+plain(accStats(accData().list).spent));}}]);
+}
