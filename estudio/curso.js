@@ -1841,10 +1841,101 @@ const DAYS = [
      hint:'Revisa tu última operación con sus tres preguntas: ¿mínimo 1:1?, ¿el TP está en una zona donde el precio puede girar?, ¿el stop está donde mi idea queda invalidada?', pre:''},
 
     {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, las llamadas de sus amigos, los comentarios sobre sus cuentas y los 10.000 $ del día (son su caso, no tu referencia), y sus cifras (500, 1.000, 250, 45 %, 70 %) que son <b>ejemplos</b>. Los subtítulos automáticos pierden varias temporalidades (por ejemplo «gap de …») y las horas de duración de los trades; revisa esos puntos en el vídeo. En el RR 1:1,5 para evaluaciones no dice más; lo explicará con el riesgo. Si quieres saber cuánto arriesgar por operación, <b>todavía no lo ha dado</b>.'}
+   ]},
+
+ { id:27, title:'El diario de trading', tags:['rut','psi'], mins:34, status:'done',
+   intro:'Qué es el diario (journal), qué apuntar, cómo lo hace él y, sobre todo, qué uso darle. Él lo lleva en Notion, pero dice que la plataforma da igual: lo importante es lo que apuntas y cómo lo analizas. Leído del español original (subtítulos automáticos de YouTube).',
+   blocks:[
+    {t:'idea', text:'El diario es el registro de <span class="mk">todas tus operaciones y de tus emociones</span>. Se hace <span class="mk">cada día, sin falta y sin pereza</span>, y solo vale la pena si luego lo <span class="mk">revisas y actúas</span>. Él estuvo un año haciéndolo «para nada» porque no lo analizaba.'},
+
+    {t:'h2', text:'Qué es y las reglas', tape:'lo básico'},
+    {t:'list', items:[
+      '<b>Apunta todas tus operaciones</b>: backtesting, demo y cuentas de fondeo. No solo las de dinero real.',
+      '<b>Empieza desde el principio</b>, con tus primeros trades de backtesting. «Está infravalorado.»',
+      '<b>Cada día, sin falta.</b> Si tienes pereza, lo haces con pereza. Incluso el día que has hecho gambling o revenge: <b>se apunta</b> («he gambleado»), porque si no coges un mal hábito.',
+      '<b>Cuándo:</b> mejor por la tarde o la noche, <b>con calma</b>, y no justo tras perder (sigues emocional). Vuelves a abrir el gráfico y repasas lo que tenías. Mejor el mismo día, aunque hay quien lo hace al día siguiente.'
+    ]},
+
+    {t:'h2', text:'Qué apuntar en cada operación', tape:'su lista'},
+    {t:'list', items:[
+      '<b>1.</b> Día de la semana y número.',
+      '<b>2.</b> Resultado: <b>win, loss o break even.</b>',
+      '<b>3.</b> <b>Riesgo</b> (mejor en dólares).',
+      '<b>4.</b> <b>RR</b> utilizado: 1:1, 1:1,5 o 1:2.',
+      '<b>5.</b> <b>Análisis del high time frame</b>, en una línea: tu DOL y la estructura de 1 h y 4 h (ej.: «DOL: gap diario; H1 y H4 alcistas respetando gaps alcistas»).',
+      '<b>6.</b> <b>Análisis del low time frame</b>, en una línea: la condición, el IFVG de la temporalidad más alta de la manipulation leg y la liquidez que buscabas.',
+      '<b>7.</b> <b>Hora del trade.</b> Importantísimo y casi nadie lo apunta.',
+      '<b>8.</b> <b>Checklist</b> (abajo).',
+      '<b>9.</b> <b>Imágenes</b> de cada temporalidad (abajo).',
+      '<b>10.</b> Opcional: <b>qué has hecho por la mañana</b> (entrenar, comer bien, madrugar…).',
+      '<b>Además:</b> un bloc de <b>emociones</b> en viñetas: he tenido FOMO, estaba nervioso antes de entrar… lo más fuerte que has sentido.'
+    ]},
+    {t:'p', cls:'detail', html:'Hasta aquí es <b>obligatorio</b> según él. El resto (rutina, preguntas extra) lo adaptas a ti.'},
+
+    {t:'h2', text:'El checklist', tape:'tus preguntas'},
+    {t:'p', html:'Son <b>casillas con preguntas</b> para decidir si el trade era bueno o malo. Puedes tenerlo al lado del gráfico o usarlo luego para analizar. Sus ejemplos:'},
+    {t:'list', items:[
+      '¿Entré antes de tiempo? (si sí, <b>forcé algo y tuve FOMO</b>)',
+      '¿Arriesgué más de lo que dice mi plan?',
+      '¿Tomaría este trade <b>1.200 veces más</b>, sin importar el resultado?',
+      '¿Tenía un HTF claro y un DOL limpio?',
+      '¿Estuve nervioso durante el trade?',
+      '¿Cerré antes de tiempo?',
+      '¿Lo tomaría en backtesting?',
+      '¿Me siento bien con el trade y <b>no con el resultado</b>?'
+    ]},
+    {t:'p', cls:'detail', html:'Es <b>muy personalizable</b>: con el backtesting y la experiencia vas añadiendo y quitando preguntas.'},
+
+    {t:'h2', text:'Las imágenes', tape:'lo más importante'},
+    {t:'cards', items:[
+      {c:'y', ico:'🖼️', h:'Qué fotos', p:'De <b>cada temporalidad</b>: <b>HTF</b> (1 h y 4 h), <b>intermedia</b> (5 y 15 min, las condiciones), <b>ejecución</b> (1–5 min, con tu long o short dibujado) y, si hace falta, el <b>S&amp;P 500</b> (por si hay SMT o true manipulation).'},
+      {c:'c', ico:'🧠', h:'Por qué', p:'Un mes después ya no recuerdas cómo estaba la 1 h ni cuál era tu DOL. Si solo guardas el gráfico de 1 minuto, <b>no puedes valorar el trade</b> y dejas de revisarlos.'},
+      {c:'m', ico:'📸', h:'Cómo', p:'En TradingView: <b>capturar imagen → descargar, copiar o copiar enlace</b>. Es un palo, pero «son parte del trabajo».'}
+    ]},
+
+    {t:'h2', text:'Cómo lo hace él', tape:'Notion'},
+    {t:'list', items:[
+      'Empezó en una <b>libreta de papel</b> (la de los apuntes), pero no podía poner fotos y le dolía la muñeca. Pasó a <b>Notion</b>, gratis.',
+      'Nueva página → pide a la <b>IA de Notion</b> que cree la base de datos con la lista de arriba, la revisa y corrige: riesgo en dólares, RR en formato 1:1, checklist desplegable, imágenes separadas por temporalidad.',
+      'Se queda como <b>favorito</b> para entrar rápido. «Es cutre, pero me funciona.» Y se ordena por fecha.',
+      '<b>Lo importante no es la plataforma</b>, sino lo que hay dentro y cómo lo analizas.'
+    ]},
+
+    {t:'h2', text:'Cómo lo revisa', tape:'el uso'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s rut">Cada día: apuntar</span><span class="ar">→</span>
+        <span class="s rut">Cada fin de semana: revisar errores y trades</span><span class="ar">→</span>
+        <span class="s rut">Cada mes: revisar todo</span>
+      </div>
+      <div class="cap">Él revisa el fin de semana, cuando se aburre y el mercado está cerrado.</div>`},
+    {t:'cards', items:[
+      {c:'c', ico:'1️⃣', h:'Un error por semana', p:'Intentar arreglar <b>todos los errores a la vez</b> no funciona: él veía cuatro errores y juraba que el lunes sería «una roca». Elige <b>uno</b> y concéntrate esa semana. Si en el mes tuviste siete errores y mejoras cuatro o cinco, «está superbién».'},
+      {c:'y', ico:'➖', h:'A veces es hacer menos', p:'Si pierdes siempre los <b>viernes</b>, no operas los viernes y sube tu win rate sin meter más trades. Lo mismo con una <b>franja horaria</b>, un <b>riesgo alto</b> o un día con el <b>HTF borroso</b>: «los días que no sepas hacia dónde va el precio, te vas».'},
+      {c:'b', ico:'🔎', h:'Qué te dice tu data', p:'Ejemplo suyo: «¿cuántos días he ganado de 9:30 a 10? Diez. ¿Y de 10:30 a 11? Dos». Entonces solo operas de 9:30 a 10. <b>Lo dice la data</b>. Y si ves que con RR 1:2 siempre estás nervioso y cierras antes, quizá te toque 1:1.'}
+    ]},
+
+    {t:'h2', text:'Su historia', tape:'por qué importa'},
+    {t:'html', cls:'viz', html:`
+      <div class="road">
+        <span class="s fin">Mes y medio estancado en break even (±500)</span><span class="ar">→</span>
+        <span class="s tec">Revisa las imágenes del diario</span><span class="ar">→</span>
+        <span class="s psi">6 pérdidas con la misma estructura: caída fuerte + primer IFVG alcista</span><span class="ar">→</span>
+        <span class="s fin">Deja de entrar ahí, opera menos y acierta más</span>
+      </div>
+      <div class="cap">Eran 6 stops de 500 $, unos <b>3.000 $</b>. Al mes siguiente no entró y pasó su primera evaluación; luego sacó su primer retiro. Y lo vio <b>solo con las imágenes</b>.</div>`},
+    {t:'quote', text:'No se trata de hacer más: muchas veces se trata de hacer menos.', src:'Idea del vídeo (parafraseada)'},
+
+    {t:'p', cls:'detail', html:'<b>Lo que viene:</b> <b>mañana, las sesiones</b> (qué implica cada una y a qué hora opera él: de 9:30 a 11 en Nueva York); después, un vídeo <b>juntándolo todo en backtesting</b> y luego la estrategia.'},
+
+    {t:'mine', id:'d27-diario', h:'Mi regla para el diario', lab:'Esto es tuyo', ph:'Cuándo lo apunto cada día, qué mínimo apunto los días malos y cuándo hago mi revisión semanal…',
+     hint:'La constancia es lo difícil: decide ahora una hora fija y un mínimo para los días malos (aunque sea una línea). Y elige un día de la semana para revisar.', pre:''},
+
+    {t:'omit', html:'<b>Lo que dejé fuera y por qué:</b> los saludos, las bromas, el viaje que anuncia, la descripción paso a paso de los menús de Notion y las anécdotas personales. Los números (80 de 100 pérdidas tras las 10:30, 10 y 2 días ganados) son <b>ejemplos inventados</b>; los 3.000 $ de su caso son suyos. Los subtítulos automáticos se comen alguna cifra (por ejemplo, «1 a 5» minutos de las ejecuciones). <b>Qué es exactamente un «yo de backtesting» o cómo se hace el backtesting</b> no lo explica aún.'}
    ]}
 ];
 
-const TOTAL_DAYS = Math.max(26, ...DAYS.map(d=>d.id));
+const TOTAL_DAYS = Math.max(27, ...DAYS.map(d=>d.id));
 
 const GLOSSARY=[
  {t:'Acumulación', d:'El precio sube y baja sin ir a ningún sitio. Si el mercado se moviera siempre así, no avanzaría: es lo contrario de una tendencia.', days:[4], more:true},
@@ -1888,6 +1979,11 @@ const GLOSSARY=[
  {t:'Take profit en zona de conflicto', d:'El TP va donde el precio puede girar: una BSL/SSL clara, un key level o, si no sabes hacia dónde irá, una condición (gap de 5 o 15 min). Si el objetivo está más cerca que 1:1, se coge el 1:1 y se deja correr.', days:[26]},
  {t:'Stop loss donde se invalida la idea', d:'No se opera sin stop. Va donde tu idea queda invalidada: «si lo toca, estoy equivocado». Regla de partida: en la <b>mecha de la manipulación</b> (el bajo en largos, el alto en cortos). Solo los avanzados lo acortan, con objetivo caro e IFVG con fuerza.', days:[26,23]},
  {t:'Break even al tocar el objetivo', d:'Con RR 1:1: cuando el precio toca el objetivo (zona de conflicto) se arrastra el stop a la entrada. Si vuelve, sales a cero; si sigue, te llevas la ganancia. El detalle lo deja para un vídeo más largo.', days:[26,22]},
+ {t:'Diario de trading (journal)', d:'Registro de <b>todas tus operaciones</b> (backtesting, demo y cuentas) y de tus <b>emociones</b>. Se apunta <b>cada día, sin falta y sin pereza</b>, mejor por la tarde con calma. Solo sirve si lo <b>revisas</b> (cada semana y cada mes) y actúas. La plataforma da igual (él usa Notion).', days:[27], more:true},
+ {t:'Checklist del trade', d:'Ocho preguntas de casillas para decidir si el trade era bueno o malo, <b>sea cual sea el resultado</b>: ¿entré antes de tiempo?, ¿arriesgué más de mi plan?, ¿lo tomaría 1.200 veces?, ¿HTF claro y DOL limpio?, ¿nervioso?, ¿cerré antes?, ¿lo tomaría en backtesting?, ¿me siento bien con el trade y no con el resultado? Personalizable.', days:[27], more:true},
+ {t:'Imágenes del trade (por temporalidad)', d:'Capturas de <b>HTF</b> (1 h y 4 h), <b>intermedia</b> (5 y 15 min, condiciones), <b>ejecución</b> (1–5 min, con tu long o short dibujado) y el <b>S&amp;P 500</b> si hay SMT. Sin ellas, un mes después no puedes valorar el trade. Se hacen con «capturar imagen» de TradingView.', days:[27]},
+ {t:'Un error por semana', d:'En la revisión semanal no intentes arreglar todos los errores a la vez: <b>elige uno</b> y trabájalo esa semana. A fin de mes, mejorar cuatro o cinco de siete es un éxito.', days:[27]},
+ {t:'Hacer menos (filtrar por datos)', d:'Si tu diario dice que pierdes siempre los viernes, a ciertas horas, con riesgo alto o con el HTF borroso, <b>dejas de operar eso</b>: tu win rate sube sin meter más trades. «A veces no se trata de hacer más, sino de hacer menos.»', days:[27]},
  {t:'Revenge trading', d:'Arriesgar más de la cuenta (overlotting) o sobreoperar (overtrading) tras perder, para recuperar. Casi siempre acaba con más pérdida o con la cuenta quemada. <b>Nada externo lo evita: solo tú.</b>', days:[14]},
  {t:'Jugar con el beneficio', d:'"Voy a jugar con lo que he ganado hoy": arriesgas el profit del día. Para él, <b>una mentira histórica</b>: si lo pierdes, quieres recuperarlo y quemas la cuenta.', days:[14]},
  {t:'Plan de riesgo', d:'Un riesgo fijo por trade y por día (su ejemplo: 300 $). La cuenta dura varios días y te mantiene tranquilo. Subirlo tras perder es el revenge trading.', days:[14,9], more:true},
@@ -1963,11 +2059,11 @@ const SISTEMA=[
  {n:7,h:'Elegir el objetivo',st:'part',p:'Liquidez objetivo (BSL/SSL, LRL, equal highs/lows). Cuenta los puntos de liquidez <b>a favor y en contra</b>. Su «draw on liquidity» es el high o low que quieres que el precio barra ese día (p. ej. un FVG sin tocar arriba). El <b>take profit</b> va en zonas de conflicto (BSL/SSL clara, key level o una condición); si no sabes qué hará el precio, sales al tocar la condición.',days:[26,25,21,15,11]},
  {n:8,h:'Stop, TP y riesgo-beneficio',st:'part',p:'<b>Stop</b> donde tu idea queda invalidada (la mecha de la manipulación). <b>RR</b> mínimo 1:1, normalmente entre 1:1 y 1:2 (1:1,5 en evaluaciones). Al tocar el objetivo, break even. <b>Falta</b> cuánto arriesgar por operación, el cálculo de contratos y cómo escalar con prop firms: lo promete para la gestión de riesgo.',days:[26,22]},
  {n:9,h:'Filtro antes de entrar',st:'ok',p:'«Si pierdo este trade, ¿me voy a enfadar?» Si sí, no entres. Y la pregunta clave: ¿está siguiendo tu plan?',days:[18,12]},
- {n:10,h:'Si algo sale mal',st:'ok',p:'Un fallo puntual es error humano; el problema es la cadena de reglas rotas y el revenge trading. Tras mala racha, parar unos días. Tras un stop no analices cada detalle: pesa <b>lo que tenías a favor y en contra</b> y pregúntate qué haría tu yo de backtesting.',days:[24,14,16,20]}
+ {n:10,h:'Si algo sale mal',st:'ok',p:'Un fallo puntual es error humano; el problema es la cadena de reglas rotas y el revenge trading. Tras mala racha, parar unos días. Y una vez dentro, <b>no tocas nada</b>: ni break even por miedo ni cerrar antes del TP. Tras un stop no analices cada detalle: pesa <b>lo que tenías a favor y en contra</b> y pregúntate qué haría tu yo de backtesting. Apunta todo en el diario y revísalo cada semana: <b>un solo error</b> por semana.',days:[27,24,22,14,16,20]}
 ];
 const SIS_ST={ok:{i:'✅',n:'Explicado',c:'c-m'},part:{i:'🟡',n:'A medias',c:'c-y'},no:{i:'⏳',n:'Aún no lo ha explicado',c:'c-c'}};
 
-const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',d24:'9QkzkdspTko',d25:'E3uwP18EYWI',d26:'fTbf2EX6Cng',dol:'zcT31zmE5Uc'};
+const YT={d13:'ICOx4rdFSLg',d15:'J7Dh-aj9-e0',d17:'sTS-iWJvTf0',d19:'56ES-W1d0xw',d20:'ygJya0srm8g',d21:'MQyNBiw-QVo',d22:'RHPEmfRGkw8',d23:'JO1xDEW2Lhg',d24:'9QkzkdspTko',d25:'E3uwP18EYWI',d26:'fTbf2EX6Cng',d27:'5Nn4woC6xrI',dol:'zcT31zmE5Uc'};
 const DUDAS=[
  {id:'smt',st:'ver',h:'¿Cuánto usa él los SMT?',q:'En el Día 13 parecía decir que los usa muy poco (en el audio salían como «SIDs»), y en el Día 17 dice que la true manipulation es obligatoria. Puede ser un fallo de la traducción automática.',how:'Escuchar el Día 13 en español cuando habla de los SMT y el Día 17 desde 9:48.',days:[13,17],links:[['Día 17 · «no todos los SMT son válidos»',YT.d17,588]]},
  {id:'fib',st:'ver',h:'Configuración exacta del Fibonacci',q:'Dice que copies su configuración de la pantalla, pero la transcripción no recoge los valores (niveles, colores, el 0.5).',how:'Pausar el Día 19 al principio y copiar los ajustes del Fibonacci.',days:[19,2],links:[['Día 19 · «copy these settings»',YT.d19,37]]},
@@ -1975,7 +2071,7 @@ const DUDAS=[
  {id:'spons',st:'ver',h:'¿Es lo mismo el «patrocinado» del Día 15 y el sponsorship del 25?',q:'El Día 25 lo define como el primer gap que se crea tras tocar un key level, respaldado por el de 1 h/4 h. Parece lo mismo que el «patrocinado» del Día 15, pero él mismo dice que no se le entiende del todo y que no lo usa mucho.',how:'Ver el Día 25 desde 18:30 y comprobarlo con el ejemplo del Día 15.',days:[25,15],links:[['Día 25 · gap esponsoreado',YT.d25,1110],['Día 15',YT.d15,0]]},
  {id:'low',st:'esp',h:'Cuándo hace falta que tome el low',q:'Da una pauta (con buena reacción no hace falta; sin reacción sí interesa), pero dice que se aprende con muchas horas de backtesting.',how:'Cuando salga el vídeo de backtesting, comprobar si da una regla más concreta.',days:[15],links:[]},
  {id:'riesgo',st:'esp',h:'Stop, riesgo y tamaño de posición',q:'Es lo más importante para operar y no lo ha explicado. Lo promete tras la estrategia (qué riesgo asumir y escalar con prop firms).',how:'Esperar. Es el paso 8 de «Mi sistema».',days:[20],links:[['Día 20 · lo que viene',YT.d20,659]]},
- {id:'bias',st:'esp',h:'El vídeo de sesiones (Asia, Londres, Nueva York)',q:'Las «condiciones» ya están en el Día 25. Sigue pendiente el vídeo de sesiones con sus horas, que prometió en el Día 21 (y la duda de la hora del análisis previo, 9:20 o 9:00).',how:'Esperar. Completa los pasos 2 y 7 de «Mi sistema».',days:[25,21],links:[['Día 25 · las condiciones',YT.d25,87],['Día 21 · «aquí entran las condiciones»',YT.d21,975]]},
+ {id:'bias',st:'esp',h:'El vídeo de sesiones (Asia, Londres, Nueva York)',q:'Las «condiciones» ya están en el Día 25. Sigue pendiente el vídeo de sesiones con sus horas, que prometió en el Día 21 y lo anuncia para el siguiente (Día 28). De momento dice que opera de 9:30 a 11 (hora de Nueva York). Queda también la duda de la hora del análisis previo (9:20 o 9:00).',how:'Esperar. Completa los pasos 2 y 7 de «Mi sistema».',days:[25,21],links:[['Día 25 · las condiciones',YT.d25,87],['Día 21 · «aquí entran las condiciones»',YT.d21,975]]},
  {id:'hora21',st:'ver',h:'¿A qué hora haces el análisis previo?',q:'Dice 10–15 minutos antes (9:20 NY = 15:20 España), pero en su demo marca las 9:00 y en la tarea te pide mirar a las 9:00.',how:'Escuchar el Día 21 en esos dos puntos y decidir tu hora (o preguntarle).',days:[21],links:[['Día 21 · «unos 15 min antes»',YT.d21,293],['Día 21 · la tarea a las 9:00',YT.d21,1790]]},
  {id:'prev21',st:'ver',h:'Su vídeo anterior sobre daily bias y DOL',q:'Recomienda verlo («mismo concepto con otros ejemplos»). Ya encontré el enlace en la descripción del Día 21 («Video DOL extra»), que empieza en el minuto 9:24. No he podido leer ese vídeo.',how:'Verlo desde el enlace (abre el vídeo en el minuto indicado) y, si aporta algo, decirme y lo añado.',days:[21],links:[['Vídeo «DOL extra» de su descripción',YT.dol,564],['Día 21 · su recomendación',YT.d21,265]]},
  {id:'doble',st:'no',h:'Doble SMT, breakaway gaps y cuándo no hace falta true manipulation',q:'Dice que no los explicará porque no los usa ni los domina. Es decisión suya; si te interesan, habría que buscarlos en otro sitio.',how:'Nada que hacer ahora. Decidir más adelante si te importa.',days:[17],links:[['Día 17 · por qué no los explica',YT.d17,1247]]},
