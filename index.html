@@ -160,6 +160,12 @@ input[type=text],input[type=number],input[type=date],input[type=time],input[inpu
 .dcard{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:6px;background:var(--page2);border:1px solid var(--line);text-decoration:none;color:var(--ink);min-height:96px}
 .dcard .dn{font-family:var(--marker);font-size:16px;color:var(--yellow)}
 .dcard.off{opacity:.45}
+.atile{padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--page2);margin-top:10px}
+.atile .an{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.amet{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:10px;margin-top:10px}
+.amet small{display:block;color:var(--muted);font-size:11.5px}
+.amet b{font-family:var(--mono);font-weight:500;font-size:15px;white-space:nowrap}
+.amet b.neg{color:var(--bad)}
 .rng{position:relative;height:10px;border-radius:3px;background:linear-gradient(90deg,rgba(255,90,95,.35),rgba(255,255,255,.06) 50%,rgba(79,209,161,.35));margin:16px 0 6px}
 .rng i{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:var(--yellow);transform:translateX(-50%)}
 .rng u{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}

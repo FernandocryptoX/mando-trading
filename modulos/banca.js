@@ -114,7 +114,7 @@ function accGoals(a){
   if(s.cons&&s.cons.best>0){const need=s.cons.best/(s.cons.lim/100),ok=s.cons.pct!=null&&s.cons.pct<=s.cons.lim;
     g.push({k:'Consistencia',short:'consistencia',pct:ok?100:Math.max(0,Math.min(100,100*s.cons.total/need)),txt:ok?'Cumplida':'Necesitas '+plain(need)+' de beneficio total · '+(s.cons.total<0?'vas en '+money(s.cons.total):'llevas '+plain(s.cons.total)),ok});}
   if(!isEval&&s.nextPay){const dd=Math.ceil((s.nextPay-Date.now())/86400000),ok=dd<=0;
-    g.push({k:'Primer cobro',short:'fecha',pct:ok?100:0,txt:ok?'Ya puedes pedirlo':'Desde el '+new Date(s.nextPay).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+' (en '+dd+' días)',ok});}
+    g.push({k:'Plazo para cobrar',short:'plazo',pct:ok?100:0,txt:ok?'El plazo ya pasó':'Faltan '+dd+' días (desde el '+new Date(s.nextPay).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+')',ok});}
   return g.length?g:null;
 }
 function accObjectivesCard(){
@@ -244,5 +244,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-bk]');if(b
 /* tarjeta resumen para Hoy */
 function bancaCard(){
   const L=accData().list,s=accStats(L);
-  return '<section class="card"><div class="row"><h3 style="margin:0">Banca</h3><a class="small" href="#banca" style="color:var(--yellow)">Abrir</a></div><div class="stats" style="margin-top:10px">'+stat('Cuentas activas',s.eval+s.funded)+stat('Gastado',plain(s.spent))+stat('Neto',L.length?money(s.net):'—',cls(s.net))+'</div>'+accActiveList().map(a=>({a,s:accState(a)})).filter(x=>x.s&&(x.s.min!=null||x.s.dayLim)).map(x=>'<div class="row small" style="margin-top:8px"><span>'+esc(x.a.plan)+'</span><span>'+plain(x.s.bal)+(x.s.margin!=null?' · te quedan <b class="'+(x.s.dd&&x.s.margin<0.25*x.s.dd?'neg':'')+'">'+plain(x.s.margin)+'</b>':'')+(x.s.sug!=null?' · riesgo máx. <b>'+plain(x.s.sug)+'</b>':'')+(x.s.capDay?' · tope hoy <b>'+plain(x.s.capDay)+'</b>':'')+'</span></div>').join('')+'</section>';
+  const tiles=accActiveList().map(a=>({a,s:accState(a)})).filter(x=>x.s).map(x=>{
+    const m=(l,v,c)=>'<div><small>'+l+'</small><b'+(c?' class="'+c+'"':'')+'>'+v+'</b></div>';
+    const low=x.s.margin!=null&&x.s.dd&&x.s.margin<0.25*x.s.dd;
+    return '<div class="atile"><div class="row" style="flex-wrap:nowrap;gap:8px"><b class="an">'+esc(x.a.plan)+'</b><span class="tag">'+esc((ACC_ST[x.a.st]||{}).n||'')+'</span></div><div class="amet">'+
+      m('Balance',plain(x.s.bal))+(x.s.margin!=null?m('Te queda',plain(x.s.margin),low?'neg':''):'')+(x.s.sug!=null?m('Riesgo máx.',plain(x.s.sug)):'')+(x.s.capDay?m('Tope hoy',plain(x.s.capDay)):'')+'</div></div>';
+  }).join('');
+  return '<section class="card"><div class="row"><h3 style="margin:0">Banca</h3><a class="small" href="#banca" style="color:var(--yellow)">Abrir</a></div><div class="stats" style="margin-top:10px">'+stat('Cuentas activas',s.eval+s.funded)+stat('Gastado',plain(s.spent))+stat('Neto',L.length?money(s.net):'—',cls(s.net))+'</div>'+tiles+'</section>';
 }
