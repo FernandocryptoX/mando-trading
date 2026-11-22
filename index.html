@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Centro de Mando Trading</title>
-<meta name="theme-color" content="#0e1014">
+<meta name="theme-color" content="#0b0b0c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -18,9 +18,9 @@
 <style>
 /* Layout: columna única pensada para el móvil. Tarjetas tipo hoja de cuaderno, navegación inferior con botón + central. Misma paleta oscura de la libreta. */
 :root{
-  --bg:#0e1014; --page:#1a1d24; --page2:#20242c; --ink:#ece9e1; --muted:#9aa0ab; --line:rgba(255,255,255,.08);
-  --yellow:#ffd84d; --mint:#5eead4; --coral:#ff7a6b; --lilac:#b69cff; --blue:#6cb6ff; --good:#7fe0a0; --bad:#ff8a8a;
-  --on-accent:#1a1d24;
+  --bg:#0b0b0c; --page:#141416; --page2:#1b1b1e; --ink:#fff3e2; --muted:#a89a85; --line:rgba(255,255,255,.09);
+  --yellow:#ffa526; --mint:#4fd1a1; --coral:#ff5a5f; --lilac:#b69cff; --blue:#6cb6ff; --good:#4fd1a1; --bad:#ff5a5f;
+  --on-accent:#0b0b0c;
   --hand:'Caveat','Segoe Print','Bradley Hand',cursive; --body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   color-scheme:dark;
 }
@@ -46,13 +46,15 @@ p{margin:0 0 10px}
 .sync.err{color:var(--coral);border-color:rgba(255,122,107,.5)}
 .stack{display:grid;gap:14px;margin-top:18px}
 .card{background:var(--page);border:1px solid var(--line);border-radius:14px;padding:16px}
-.card.hl{border-color:rgba(255,216,77,.45);background:linear-gradient(180deg,rgba(255,216,77,.07),transparent 70%),var(--page)}
+.card.hl{border-color:rgba(255,165,38,.5);box-shadow:0 0 16px rgba(255,165,38,.14)}
 .card.warn{border-color:rgba(255,122,107,.5)}
 .row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.stat{background:var(--page2);border-radius:10px;padding:10px 12px;min-width:0}
+.stat{background:var(--page2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.stat.pos{border-color:rgba(79,209,161,.5);box-shadow:0 0 10px rgba(79,209,161,.12)}
+.stat.neg{border-color:rgba(255,90,95,.5);box-shadow:0 0 10px rgba(255,90,95,.12)}
 .stat small{display:block;font-size:11.5px;color:var(--muted)}
-.stat b{font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat b{font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pos{color:var(--good)} .neg{color:var(--bad)}
 .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0 6px}
 .bar i{display:block;height:100%;border-radius:6px;background:var(--yellow)}
@@ -62,7 +64,7 @@ p{margin:0 0 10px}
 .btn{min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);font-weight:500}
 .btn:hover{background:rgba(255,255,255,.1)}
 .btn.pri{background:var(--yellow);color:var(--on-accent);border-color:var(--yellow);font-weight:600}
-.btn.pri:hover{background:#ffe27a}
+.btn.pri:hover{background:#ffbe5c}
 .btn.danger{border-color:rgba(255,122,107,.6);color:var(--coral)}
 .btn.sm{min-height:36px;padding:4px 12px;font-size:14px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
@@ -75,14 +77,14 @@ p{margin:0 0 10px}
 .day{display:flex;justify-content:space-between;align-items:baseline;margin:18px 2px 6px}
 .day b{font-family:var(--hand);font-size:26px;font-weight:700}
 .tr{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--page);margin-top:8px;min-width:0}
-.tr:hover{border-color:rgba(255,216,77,.5)}
+.tr:hover{border-color:rgba(255,165,38,.5)}
 .dir{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:700;background:rgba(108,182,255,.15);color:var(--blue)}
 .dir.s{background:rgba(182,156,255,.15);color:var(--lilac)}
 .tr .mid{min-width:0}
 .tr .t1{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr .t2{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .tag{font-size:12px;padding:1px 9px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--muted)}
-.tag.good{color:var(--mint);border-color:rgba(94,234,212,.4)} .tag.bad{color:var(--coral);border-color:rgba(255,122,107,.45)} .tag.neu{color:var(--yellow);border-color:rgba(255,216,77,.4)}
+.tag.good{color:var(--mint);border-color:rgba(94,234,212,.4)} .tag.bad{color:var(--coral);border-color:rgba(255,122,107,.45)} .tag.neu{color:var(--yellow);border-color:rgba(255,165,38,.4)}
 .tr .amt{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
 .srow{position:relative;display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:9px 10px;border-radius:8px;margin-top:6px;overflow:hidden;background:var(--page2);min-width:0}
 .srow .sbar{position:absolute;left:0;top:0;bottom:0;opacity:.22}
@@ -99,9 +101,9 @@ textarea.hw{width:100%;min-height:96px;resize:vertical;background:var(--page2);b
 input[type=text],input[type=number],input[type=date],input[type=time],input[inputmode]{width:100%;min-height:44px;background:var(--page2);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .field{display:grid;gap:4px;font-size:12.5px;color:var(--muted)}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
-.banner{padding:10px 14px;border-radius:12px;border:1px dashed rgba(255,216,77,.55);background:rgba(255,216,77,.07);font-size:14px}
+.banner{padding:10px 14px;border-radius:12px;border:1px dashed rgba(255,165,38,.55);background:rgba(255,165,38,.07);font-size:14px}
 /* navegación */
-.bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(14,16,20,.96);border-top:1px solid var(--line);
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(11,11,12,.96);border-top:1px solid var(--line);
   padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));backdrop-filter:blur(8px)}
 .bnav .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 74px 1fr 1fr;align-items:center}
 .bnav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:10px;text-decoration:none;color:var(--muted);font-size:11.5px;min-height:48px;justify-content:center}
@@ -119,7 +121,7 @@ input[type=text],input[type=number],input[type=date],input[type=time],input[inpu
 .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-size:14.5px}
-.chip.on{background:rgba(255,216,77,.2);border-color:var(--yellow);color:var(--yellow)}
+.chip.on{background:rgba(255,165,38,.2);border-color:var(--yellow);color:var(--yellow)}
 .chip.on.good{background:rgba(94,234,212,.18);border-color:var(--mint);color:var(--mint)}
 .chip.on.bad{background:rgba(255,122,107,.18);border-color:var(--coral);color:var(--coral)}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -149,7 +151,7 @@ input[type=text],input[type=number],input[type=date],input[type=time],input[inpu
 .study a{color:inherit}
 .study h3{text-transform:none;letter-spacing:0}
 .study h2{flex-wrap:wrap}
-.study .card{border:0;border-top:4px solid var(--c,#ffd84d)}
+.study .card{border:0;border-top:4px solid var(--c,#ffa526)}
 .study.repaso .detail{display:none}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .tile{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:14px;background:var(--page2);border:1px solid var(--line);text-decoration:none;color:var(--ink);min-height:84px;cursor:pointer}
@@ -191,6 +193,7 @@ input[type=text],input[type=number],input[type=date],input[type=time],input[inpu
 <script src="modulos/tradovate.js"></script>
 <script src="modulos/sync.js"></script>
 <script src="modulos/imagenes.js"></script>
+<script src="modulos/graficos.js"></script>
 <script src="modulos/legacy.js"></script>
 <script>
 /* ============ utilidades ============ */
@@ -389,7 +392,7 @@ function focusHoy(){
 
 const header=(kick,title)=>'<header class="top"><div><div class="kick">'+esc(kick)+'</div><h1>'+esc(title)+'</h1></div>'+syncChip()+'</header>';
 const exBanner=()=>all().some(t=>t.ex)?'<div class="banner">Estás viendo datos de ejemplo. Bórralos en «Más» cuando quieras empezar con los tuyos.</div>':'';
-const stat=(l,v,c)=>'<div class="stat"><small>'+l+'</small><b class="'+(c||'')+'">'+v+'</b></div>';
+const stat=(l,v,c)=>'<div class="stat '+(c||'')+'"><small>'+l+'</small><b class="'+(c||'')+'">'+v+'</b></div>';
 
 function sessionHTML(){
   const now=Date.now(),s=sessionState(now),lab={before:'Falta para la sesión',in:'Sesión en curso · quedan',after:'Sesión terminada · próxima en',weekend:'Mercado cerrado · próxima sesión en'}[s.k];
@@ -422,7 +425,7 @@ function renderHoy(){
    '<section class="card"><h3>Resultado de hoy</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Resultado',a.c?money(a.net):'—',cls(a.net))+stat('Reglas seguidas',td.filter(x=>x.rules).length?Math.round(100*td.filter(x=>x.rules==='si').length/td.filter(x=>x.rules).length)+' %':'—')+'</div>'+
    (stk?'<p class="small muted" style="margin:10px 0 0">Llevas <b style="color:var(--mint)">'+stk+'</b> operaci'+(stk>1?'ones':'ón')+' seguidas cumpliendo tus reglas.</p>':'')+
    '<div class="acts" style="margin-top:12px"><button class="btn pri" data-act="new">Anotar operación</button></div></section>'+
-   focusHoy()+btCard()+studyCard()+bancaCard()+
+   chartsHoy()+focusHoy()+btCard()+studyCard()+bancaCard()+
    '<section class="card"><h3>Meta del mes</h3><div class="row"><b style="font-size:22px" class="'+cls(mon.net)+'">'+(mon.c?money(mon.net):'$0')+'</b><span class="muted">de '+plain(goal)+'</span></div><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div><p class="small muted" style="margin:0">Suma de los resultados anotados en el diario este mes. Cuando exista la Banca, aquí entrarán los cobros de las prop firms.</p></section>'+
    '<section class="card"><h3>Pendientes</h3>'+(items.length?items.join(''):'<p class="muted" style="margin:0">Todo al día. Nada pendiente de cerrar.</p>')+'</section></div></div>';
   tick();
@@ -526,7 +529,7 @@ function renderDiario(){
     else{
     const a=agg(Lk),ins=insights(Lk),cl=closed(Lk);
     body=kseg+'<section class="card"><h3>Resumen</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Ganadoras',a.win==null?'—':Math.round(a.win)+' %')+stat('Resultado',money(a.net),cls(a.net))+'</div><div class="stats" style="margin-top:10px">'+stat('Media por op.',a.avg==null?'—':money(a.avg),cls(a.avg))+stat('R medio',a.avgR==null?'—':a.avgR.toFixed(2).replace('.',','))+stat('Factor beneficio',a.pf==null?'—':a.pf.toFixed(2).replace('.',','))+'</div></section>'+
-     '<section class="card"><h3>Lo que dicen tus datos</h3>'+(ins.length?ins.map(i=>'<div class="insight '+i[1]+'">'+i[0]+'</div>').join(''):'<p class="muted" style="margin:0">Hacen falta al menos 3 operaciones cerradas por emoción o setup para ver patrones.</p>')+'</section>'+gallery(cl)+
+     chartsStats(cl)+'<section class="card"><h3>Lo que dicen tus datos</h3>'+(ins.length?ins.map(i=>'<div class="insight '+i[1]+'">'+i[0]+'</div>').join(''):'<p class="muted" style="margin:0">Hacen falta al menos 3 operaciones cerradas por emoción o setup para ver patrones.</p>')+'</section>'+gallery(cl)+
      statSection('Proceso y resultado',group(cl.filter(t=>t.rules),t=>(t.rules==='si'?'Seguiste las reglas · ':'Rompiste reglas · ')+(t.res>0?'ganaste':t.res<0?'perdiste':'break even')),'Perder siguiendo las reglas es normal. Ganar rompiéndolas es el peligro: refuerza malos hábitos.')+
      statSection('Proceso del checklist y resultado',group(cl.filter(chkDone),t=>(chkGood(t)?'Buen proceso (75 % o más) · ':'Proceso flojo · ')+(t.res>0?'ganaste':t.res<0?'perdiste':'break even')),'Perder con buen proceso es normal. Ganar con proceso flojo es suerte: no la cuentes como acierto.')+
      statSection('Lo que más te cuesta (checklist)',group(cl.filter(chkDone),t=>chkFails(t)),'Cuántas veces fallaste cada pregunta y cuánto te costó. Es tu mapa de errores.')+
@@ -542,8 +545,6 @@ function renderDiario(){
      statSection('Riesgo por operación',group(cl.filter(t=>t.risk>0),t=>plain(t.risk)),'Mira si las operaciones de más riesgo acaban peor: suele ir ligado a nervios y a querer recuperar.')+
      statSection('RR planeado',group(cl.filter(t=>t.rr>0),t=>rrTxt(t.rr)))+
      reentrada(cl)+
-     statSection('Día de la semana',group(cl,t=>DOW[dowOf(t.date)]))+
-     statSection('Hora de entrada (Nueva York)',group(cl,t=>{const p=parts(t.ts,TZ_NY);return pad(p.h)+':'+(p.mi<30?'00':'30');}),'Las filas atenuadas tienen menos de 5 operaciones: con tan pocas es ruido. Cuando tengas decenas, serán fiables.')+
      (dkind==='all'?statSection('Tipo de operación',group(cl.filter(t=>t.kind),t=>OP_TIPO_N[t.kind])):'');
     }
   }
