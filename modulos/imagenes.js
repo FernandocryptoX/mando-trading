@@ -84,7 +84,7 @@ async function imgUploadToSlot(file,slot){
   try{
     toast('Preparando la imagen…');
     const id=await imgAddFile(file);
-    if(typeof F!=='undefined'&&F){(F.newImgs=F.newImgs||[]).push(id);F.img[slot]='img:'+id;renderSheet();toast('Imagen añadida');}
+    if(typeof F!=='undefined'&&F){(F.newImgs=F.newImgs||[]).push(id);F.img[slot]='img:'+id;renderSheet();const lab=((IMG_SLOTS.find(s=>s[0]===slot))||[])[1]||'';toast('Imagen añadida'+(lab?' a «'+lab.split(' · ')[0]+'»':''));setTimeout(()=>{const sl=document.querySelector('.imgslot[data-slot="'+slot+'"]');if(sl)sl.scrollIntoView({block:'center'});},120);}
   }catch(e){toast('No se pudo leer esa imagen');}
 }
 async function imgPasteSlot(slot){
