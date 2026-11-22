@@ -1,7 +1,7 @@
 /* Banca: cuentas de prop firm, cobros, gastos y retorno por prop firm. Datos en S.cfg.acc.list. */
 
 const ACC_ST={eval:{i:'🟡',n:'En evaluación'},funded:{i:'🟢',n:'Funded'},lost:{i:'🔴',n:'Perdida'},closed:{i:'⚪',n:'Cerrada'}};
-function accData(){const c=S.cfg;c.acc=c.acc||{};c.acc.list=(c.acc.list||[]).map(x=>Object.assign({hist:[],payouts:[],fees:[]},x));return c.acc;}
+function accData(){const c=S.cfg;c.acc=c.acc||{};c.acc.list=c.acc.list||[];c.acc.list.forEach(x=>{if(!x.hist)x.hist=[];if(!x.payouts)x.payouts=[];if(!x.fees)x.fees=[];});return c.acc;}   // sin reordenar claves: si no, la nube cree que cambiaste las cuentas en cada pantalla
 const accSum=a=>(a||[]).reduce((x,y)=>x+(+y.amt||0),0);
 const accTs=v=>{const t=Date.parse(String(v||'')+'T12:00:00');return isFinite(t)?t:Date.now();};
 function accStats(list){
@@ -92,63 +92,6 @@ function histDialog(a){
       L.forEach(x=>{const id='sd-'+a.id+'-'+x[0];sdSave(a,x[0],x[1],'Historial anterior',id,S.trades[id]&&S.trades[id].cr);});
       render();const s=accState(a);toast(L.length+(L.length===1?' día cargado':' días cargados')+(s?' · balance '+plain(s.bal):''));}}]);
 }
-/* ---------- carga única del historial de Instant Funded Pro 25K (8 operaciones del panel de MT5) ---------- */
-const IP_START='2026-09-11';
-const IP_DAYS=[];
-const ipAcc=()=>accData().list.find(x=>/instant/i.test(x.plan)&&/25/.test(x.plan))||accData().list.find(x=>/instant/i.test(x.plan));
-const instantPending=()=>{const a=ipAcc();return a&&!IP_DAYS.every(d=>S.trades['sd-ip-'+d[0]])?a:null;};
-function instantDays(){
-  const a=ipAcc();if(!a){toast('Crea primero la cuenta Instant Funded Pro 25K con la plantilla');return;}
-  const rows=IP_DAYS.map(d=>{const ex=Object.values(S.trades).filter(t=>t.acc===a.id&&t.date===d[0]&&t.res!=null&&t.id!=='sd-ip-'+d[0]).reduce((x,t)=>x+t.res,0);return{d:d[0],tot:d[1],add:Math.round((d[1]-ex)*100)/100};});
-  dialog('<h2 style="font-size:22px">Cargar tus días de Instant Funded Pro 25K</h2><p class="small muted">Resultado de cada día según tus 8 operaciones del panel. El 20 de noviembre ya lleva restadas las comisiones y swaps (−X,XX $), para que el balance salga igual que en tu panel: XX.XXX,XX $.</p>'+rows.map(r=>'<div class="srow"><span class="sn">'+esc(niceDate(r.d))+'</span><span class="sm">día completo</span><b class="'+cls(r.add)+'">'+(Math.abs(r.add)<0.005?'—':money(r.add))+'</b></div>').join('')+'<p class="small muted" style="margin:10px 0 0">También pongo como inicio de la cuenta el 11 de septiembre de 2026 (la primera operación es del 17) y dejo el mercado en CFDs.</p>',
-    [{label:'Cancelar'},{label:'Cargar',primary:true,run:()=>{
-      rows.forEach(r=>{const id='sd-ip-'+r.d;if(Math.abs(r.add)>=0.005)sdSave(a,r.d,r.add,'Historial anterior',id,S.trades[id]&&S.trades[id].cr);else if(S.trades[id])delTrade(id);});
-      if(a.date>IP_START){a.date=IP_START;a.hist.forEach(h=>{if(h.note==='Compra')h.ts=accTs(IP_START);});}
-      a.mkt='cfd';saveCfg();renderBanca();toast('Días cargados · balance '+plain((accState(a)||{}).bal));}}]);
-}
-/* ---------- pedidos reales: Lucid (3) y Wall Street Funded Rapid (1) ---------- */
-const ORDERS=[];
-function orderData(o){
-  const tpl=o.kind==='lucid'?ACC_TPL.l50:ACC_TPL.r50;
-  return Object.assign({},tpl,{st:undefined,firm:o.kind==='lucid'?'Lucid':'Wall Street Funded',plan:o.kind==='lucid'?'LucidFlex 50K · '+o.tag:'Rapid One Phase 50K',plat:o.kind==='lucid'?'TDV/NT':'MT5',date:o.date,order:o.n,price:o.price,disc:o.disc,paid:o.paid,coupon:o.coupon,pay:o.pay||'Tarjeta',note:o.note,cons:o.addon?50:tpl.cons});
-}
-const ordersPending=()=>ORDERS.some(o=>!accData().list.some(x=>x.order===o.n));
-function ordersPlan(){
-  const acc=accData(),used=new Set(),plan=[];
-  ORDERS.forEach(o=>{
-    let a=acc.list.find(x=>x.order===o.n);
-    if(!a){
-      let pool=acc.list.filter(x=>!x.order&&!used.has(x.id)&&(o.kind==='lucid'?/lucid/i.test(x.firm+' '+x.plan):/rapid/i.test(x.plan)||(/wall street|wsf/i.test(x.firm)&&!/instant/i.test(x.plan))));
-      const nT=x=>Object.values(S.trades).filter(t=>t.acc===x.id).length;
-      if(o.main)pool=pool.sort((p,q)=>nT(q)-nT(p));
-      a=pool[0]||null;
-    }
-    if(a)used.add(a.id);
-    plan.push({o,a});
-    if(a)a.__tmp=1;
-  });
-  acc.list.forEach(x=>{delete x.__tmp;});
-  return plan;
-}
-function ordersLoad(){
-  const f2=n=>'$'+n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const plan=ordersPlan(),tot=ORDERS.reduce((x,o)=>x+o.paid,0);
-  dialog('<h2 style="font-size:22px">Cargar tus pedidos de cuentas</h2><p class="small muted">Pongo en cada cuenta su pedido, precio, descuento, cupón y fecha, para distinguirlas. Si la cuenta ya existe la actualizo; si no, la creo con las reglas de su plantilla.</p>'+plan.map(x=>'<div class="srow"><span class="sn">'+esc(orderData(x.o).plan)+'</span><span class="sm">'+(x.a?'actualizo':'creo')+' · pedido '+x.o.n+(x.o.st==='lost'?' · perdida':'')+'</span><b>'+f2(x.o.paid)+'</b></div>').join('')+'<p style="margin:12px 0 0"><b>Gastado en estos pedidos: '+f2(tot)+'</b></p>',
-    [{label:'Cancelar'},{label:'Cargar',primary:true,run:()=>{
-      const acc=accData();
-      ordersPlan().forEach(x=>{
-        const d=orderData(x.o);let a=x.a;
-        if(!a){a=accCreate(acc.list,d);}
-        else{
-          const n=accCreate([],d);
-          ['firm','plan','plat','date','order','price','disc','paid','coupon','pay','note'].forEach(k=>{a[k]=n[k];});
-          ['size','mkt','dd','trail','live','lockAt','lossN','target','dayLim','dayPct','minDays','profDay','cons','maxRisk','firstPay','payEvery','split','norms'].forEach(k=>{if(a[k]==null||a[k]===''||k==='cons')a[k]=n[k];});
-          if(a.hist&&a.hist.length&&a.hist[0].note==='Compra')a.hist[0].ts=accTs(x.o.date);
-        }
-        if(x.o.st==='lost'&&a.st!=='lost'){a.st='lost';a.hist.push({ts:accTs(x.o.date),st:'lost',note:'Perdida (fecha sin confirmar)'});}
-      });
-      saveCfg();renderBanca();toast('Pedidos cargados · gastado '+plain(accStats(accData().list).spent));}}]);
-}
 function syncDialog(a){
   const s=accState(a);if(!s){toast('Pon primero el tamaño de la cuenta en «Editar»');return;}
   dialog('<h2 style="font-size:22px">Cuadrar con tu balance real</h2><p class="small muted">Ahora la app calcula <b>'+plain(s.bal)+'</b>. Escribe el balance que ves en la plataforma y creo un día sin detalle con la diferencia.</p><div class="fgrid"><label class="field">Balance real ($)<input id="syB" inputmode="decimal"></label><label class="field">Fecha del ajuste<input id="syD" type="date" value="'+dateOf(Date.now())+'"></label></div>',
@@ -158,21 +101,6 @@ function syncDialog(a){
       const diff=Math.round((real-s.bal)*100)/100;
       if(Math.abs(diff)<0.005){toast('Ya cuadra, no hace falta ajustar');return;}
       sdSave(a,d,diff,'Ajuste de balance');render();toast('Ajuste de '+money(diff)+' guardado');}}]);
-}
-
-/* ---------- carga única de los días 18–20 de LucidFlex 50K ---------- */
-const LUCID_DAYS=[];
-const lucidAcc=()=>{const L=accData().list,f=x=>/lucid/i.test(x.firm+' '+x.plan);return L.find(x=>x.order==='XXXXXX')||L.find(x=>f(x)&&/50/.test(x.plan))||L.find(f);};
-const lucidPending=()=>{const a=lucidAcc();return a&&!LUCID_DAYS.every(d=>S.trades['sd-lucid-'+d[0]])?a:null;};
-function lucidDays(){
-  const a=lucidAcc();if(!a){toast('No encuentro la cuenta LucidFlex 50K en Banca');return;}
-  const rows=LUCID_DAYS.map(d=>{const ex=Object.values(S.trades).filter(t=>t.acc===a.id&&t.date===d[0]&&t.res!=null&&t.id!=='sd-lucid-'+d[0]).reduce((x,t)=>x+t.res,0);return{d:d[0],tot:d[1],ex,add:Math.round((d[1]-ex)*100)/100};});
-  dialog('<h2 style="font-size:22px">Cargar tus días de LucidFlex 50K</h2><p class="small muted">Resultado real de cada día, lo que ya tienes anotado y lo que se añade como «día sin detalle». Así el balance sale igual que en la plataforma.</p>'+rows.map(r=>'<div class="srow"><span class="sn">'+esc(niceDate(r.d))+'</span><span class="sm">real '+money(r.tot)+' · ya anotado '+money(r.ex)+'</span><b class="'+cls(r.add)+'">'+(Math.abs(r.add)<0.005?'—':money(r.add))+'</b></div>').join('')+'<p class="small muted" style="margin:10px 0 0">También dejo puestas las reglas de la cuenta: pérdida máxima 2.000 $ que sigue al máximo del cierre, objetivo 3.000 $ y pérdida diaria 1.200 $ (si no tenías otras). Se pueden cambiar en «Editar».</p>',
-    [{label:'Cancelar'},{label:'Cargar',primary:true,run:()=>{
-      rows.forEach(r=>{const id='sd-lucid-'+r.d;if(Math.abs(r.add)>=0.005)sdSave(a,r.d,r.add,'Día sin detalle',id,S.trades[id]&&S.trades[id].cr);else if(S.trades[id])delTrade(id);});
-      if(!+a.size)a.size=50000;if(a.dd==null)a.dd=2000;if(a.trail==null)a.trail=true;if(a.target==null)a.target=3000;if(a.dayLim==null)a.dayLim=1200;if(!a.mkt)a.mkt='fut';
-      if(a.st!=='eval'&&a.st!=='funded'){/* se queda como esté */}
-      saveCfg();renderBanca();toast('Días cargados');}}]);
 }
 
 function accCurve(a){
@@ -245,7 +173,7 @@ function renderBanca(){
    '<div class="stats" style="margin-top:10px">'+stat('Cuentas',S0.n)+stat('Activas',S0.eval+S0.funded)+stat('Pasaron a funded',S0.passed+' de '+S0.n)+'</div></section>'+
    '<section class="card"><h3>Cobrado este mes</h3><div class="row"><b style="font-size:22px">'+plain(cobradoMes)+'</b><span class="muted">de '+plain(goal)+'</span></div><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div><p class="small muted" style="margin:0">La meta mensual se cambia en «Más».</p></section>'+
    chartsBanca(L)+(firmRows?'<section class="card"><h3>Retorno por prop firm</h3>'+firmRows+'<p class="small muted" style="margin:10px 0 0">Neto = cobros − lo pagado − otros gastos. Una cuenta perdida o cerrada sigue contando.</p></section>':'')+
-   '<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+(ordersPending()?'<section class="card hl"><h3>Falta registrar</h3><p class="small" style="margin:0 0 10px">Tus pedidos de las 3 LucidFlex 50K y de la Rapid de Wall Street Funded: precio, descuento, cupón y fecha. Así distingues cada cuenta y ves lo que llevas gastado.</p><button class="btn pri" data-bk="orders|x">Cargar mis pedidos</button></section>':'')+(instantPending()?'<section class="card hl"><h3>Falta registrar</h3><p class="small" style="margin:0 0 10px">Las 8 operaciones de tu Instant Funded Pro 25K (septiembre a noviembre) no están en el Diario. Las cargo por días, con el resultado real, para que el balance y la consistencia cuadren con tu panel.</p><button class="btn pri" data-bk="ipdays|x">Cargar esos días</button></section>':'')+(lucidPending()?'<section class="card hl"><h3>Falta registrar</h3><p class="small" style="margin:0 0 10px">Tus días 18, 19 y 20 de noviembre en LucidFlex 50K no están en el Diario. Los cargo con su resultado real y dejo las reglas de la cuenta.</p><button class="btn pri" data-bk="lucid|x">Cargar esos días</button></section>':'')+
+   '<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+
    (L.length?L.map(card).join(''):'<section class="card empty"><h2>Todavía no hay cuentas</h2><p class="muted">Anota cada cuenta de prop firm que compres para saber si el negocio sale a cuenta.</p></section>')+
    '</div></div>';
 }
@@ -270,9 +198,6 @@ function accForm(a){
 function accAct(s){
   const p=s.split('|'),k=p[0],acc=accData(),t=p[1]&&acc.list.find(x=>x.id===p[1]);
   if(k==='new'){accForm();return;}
-  if(k==='lucid'){lucidDays();return;}
-  if(k==='ipdays'){instantDays();return;}
-  if(k==='orders'){ordersLoad();return;}
   if(k==='sdedit'){const tr=S.trades[p[1]],ac=tr&&acc.list.find(x=>x.id===tr.acc);if(ac)sdDialog(ac,tr);return;}
   if(!t)return;
   const today=dateOf(Date.now());
