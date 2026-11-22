@@ -343,7 +343,8 @@ const all=()=>Object.values(S.trades).sort((a,b)=>b.ts-a.ts);
 const closed=a=>a.filter(t=>t.res!=null);
 /* El backtesting mide la estrategia; lo real (evaluación y fondeada) te mide a ti: no se mezclan en Hoy, meta ni revisión. */
 const isReal=t=>t.kind!=='bt';
-const allReal=()=>all().filter(isReal);
+let ACCF='all',dacc='all';
+const allReal=()=>all().filter(isReal).filter(t=>ACCF==='all'||t.acc===ACCF);
 const nextWk=ds=>{let d=addD(ds,1);while(dowOf(d)===0||dowOf(d)===6)d=addD(d,1);return d;};
 const dShort=ds=>{const a=String(ds||'').split('-').map(Number);return a.length===3?a[2]+' '+MON[a[1]-1]+' '+a[0]:'';};
 function agg(a){const c=closed(a),w=c.filter(t=>t.res>0),net=c.reduce((x,t)=>x+t.res,0),rs=c.filter(t=>typeof t.r==='number');
@@ -524,9 +525,11 @@ function gallery(cl){
    (sel.length?'<div class="ggrid">'+sel.map(t=>'<button class="gtile" data-act="edit" data-id="'+t.id+'">'+imgTag(first(t),'')+'<span class="gcap">'+esc(dShort(t.date).replace(/ \d{4}$/,''))+' · '+esc(t.kl||(t.setup||[])[0]||'Sin setup')+' · '+money(t.res)+'</span></button>').join('')+'</div>':'<p class="muted small" style="margin:0">No hay operaciones de este tipo con imagen.</p>')+
    '<p class="small muted" style="margin:10px 0 0">Busca patrones: ¿se repite la misma estructura en tus pérdidas? Toca una para abrirla.</p></section>';
 }
-function diarioSeg(a){return '<div class="seg">'+[['ops','Real'],['bt','Backtesting'],['stats','Conclusiones'],['rev','Revisión']].map(x=>'<button data-act="dsub" data-v="'+x[0]+'" class="'+(a===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';}
-function renderDiario(){
-  const L=all();
+function accFilter(a){const L=accData().list;if(a==='bt'||!L.length)return '';if(dacc!=='all'&&!L.some(x=>x.id===dacc))dacc='all';return '<div class="chips" style="margin-top:8px">'+[['all','Todas las cuentas']].concat(L.map(x=>[x.id,x.plan])).map(x=>'<button type="button" class="chip'+(dacc===x[0]?' on':'')+'" data-act="dacc" data-v="'+esc(x[0])+'">'+esc(x[1])+'</button>').join('')+'</div>';}
+function diarioSeg(a){return '<div class="seg">'+[['ops','Real'],['bt','Backtesting'],['stats','Conclusiones'],['rev','Revisión']].map(x=>'<button data-act="dsub" data-v="'+x[0]+'" class="'+(a===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>'+accFilter(a);}
+function renderDiario(){ACCF=dacc;try{renderDiario0();}finally{ACCF='all';}}
+function renderDiario0(){
+  const L=all().filter(t=>dacc==='all'||t.kind==='bt'||t.acc===dacc);
   let body='';
   if(!L.length&&dsub!=='bt'){body='<section class="card empty"><h2>Todavía no hay operaciones</h2><p class="muted">Anota la primera con el botón +. Con unas decenas de operaciones empezarás a ver qué emociones y qué setups te dan dinero.</p><div class="acts" style="justify-content:center"><button class="btn pri" data-act="new">Anotar operación</button><button class="btn" data-act="exload">Ver con datos de ejemplo</button></div></section>';}
   else if(dsub==='bt'){
@@ -567,7 +570,8 @@ function renderDiario(){
   $('#view').innerHTML='<div class="wrap">'+header('Registro','Diario')+'<div class="stack">'+exBanner()+diarioSeg(dsub)+'<div class="acts"><button class="btn" data-tv="import">Importar de Tradovate</button></div>'+body+'</div></div>';
 }
 
-function renderRevision(){
+function renderRevision(){ACCF=dacc;try{renderRevision0();}finally{ACCF='all';}}
+function renderRevision0(){
   if(revMode==='month')return renderRevisionMes();
   const mon=addD(mondayOf(todayES()),7*wkOff),end=addD(mon,6),W=allReal().filter(t=>inWeek(t,mon)),a=agg(W),rv=S.cfg.reviews[mon]||{};
   const ru=W.filter(t=>t.rules),pr=ru.length?Math.round(100*ru.filter(t=>t.rules==='si').length/ru.length):null;
@@ -675,7 +679,9 @@ function renderSheet(){
   const chkBlock='<div><div class="lbl">Checklist del trade · <b>'+(sc8!=null?'Proceso '+sc8+'/'+cs.length:chkN(ft)+'/'+cs.length+' respondidas')+'</b></div>'+cs.map(q=>'<div class="chkq"><span>'+q[1]+'</span><div class="chips"><button type="button" class="chip '+(q[2]===1?'good':'bad')+(F.chk[q[0]]===1?' on':'')+'" data-f="chk:'+q[0]+':1">Sí</button><button type="button" class="chip '+(q[2]===0?'good':'bad')+(F.chk[q[0]]===0?' on':'')+'" data-f="chk:'+q[0]+':0">No</button></div></div>').join('')+'</div>';
   const imgBlock='<div><div class="lbl">Imágenes · <b>'+IMG_SLOTS.slice(0,3).filter(s=>imgOk(F.img[s[0]])).length+'/3</b></div><p class="small muted" style="margin:0 0 8px">Pega un enlace (TradingView: cámara → «Copiar enlace», o el de tu plataforma de backtesting) o sube una captura. Copia la captura y pégala con Ctrl+V en cualquier parte de este formulario (va al primer hueco libre), o arrástrala sobre un hueco.</p>'+IMG_SLOTS.map(s=>{const u=F.img[s[0]]||'',st=imgIsStored(u),ok=imgOk(u);return '<div class="imgslot" data-slot="'+s[0]+'"><div class="small muted" style="margin-bottom:4px">'+s[1]+'</div>'+(st?'<div class="small" style="margin:0 0 6px">Imagen subida ✓</div>':'<input id="fImg_'+s[0]+'" value="'+esc(u)+'" placeholder="Enlace, o Ctrl+V con una captura" style="width:100%">')+'<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm" data-f="imgpaste:'+s[0]+'">Pegar</button><button type="button" class="btn sm" data-f="imgfile:'+s[0]+'">Subir imagen</button>'+(u?'<button type="button" class="btn sm" data-f="imgclear:'+s[0]+'" aria-label="Quitar">✕ Quitar</button>':'')+'</div>'+(u&&!ok?'<p class="small" style="color:var(--bad);margin:6px 0 0">Eso no parece un enlace ni una imagen. Pega un enlace que empiece por https:// o sube una captura.</p>':'')+(ok?(st?imgTag(u,'imgprev'):'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+imgTag(u,'imgprev')+'</a>'):'')+'</div>';}).join('')+'</div>';
   const fcsNow=focusOf(mondayOf(todayES())),fHits=bt?[]:filtersHit({date:F.date,ts:(Date.parse(F.date+'T'+(F.time||'12:00')+':00')||Date.now()),pre:F.pre,chk:F.chk});
-  const fBanner=(!bt&&fcsNow?'<div class="insight">Esta semana trabajas: <b>'+esc(fcsNow)+'</b></div>':'')+fHits.map(f=>'<div class="insight bad">Ojo, va contra tu filtro: '+esc(filterLabel(f))+'</div>').join('');
+  const sA=(!bt&&F.acc)?accData().list.find(x=>x.id===F.acc):null,sS=sA?accState(sA):null;
+  const accHint=sS&&sS.sug!=null?'<div class="insight '+(sS.sug>0?'':'bad')+'">'+(sS.sug>0?'En esta cuenta te quedan <b>'+plain(sS.margin)+'</b> hasta el mínimo. Riesgo máximo sugerido: <b>'+plain(sS.sug)+'</b>.':'<b>No operes</b> con esta cuenta: estás en el mínimo o en el límite del día.')+(num(F.risk)>sS.sug&&sS.sug>0?' <b>Ojo: arriesgas más.</b>':'')+'</div>':'';
+  const fBanner=accHint+(!bt&&fcsNow?'<div class="insight">Esta semana trabajas: <b>'+esc(fcsNow)+'</b></div>':'')+fHits.map(f=>'<div class="insight bad">Ojo, va contra tu filtro: '+esc(filterLabel(f))+'</div>').join('');
   $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+title+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
    fBanner+kick('Al cerrar la operación')+
    '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+instrBlock+'</div>'+btDay+
@@ -797,6 +803,7 @@ document.addEventListener('click',e=>{
   else if(act==='btstats'){dkind='bt';dsub='stats';render();}
   else if(act==='edit'){const t=S.trades[a.dataset.id];if(t)openSheet(t);}
   else if(act==='dkind'){dkind=v;render();}
+  else if(act==='dacc'){dacc=v;if(a.closest('.card')){dsub='ops';if(location.hash!=='#diario')location.hash='#diario';else render();}else render();}
   else if(act==='dsub'){if(v==='rev'){location.hash='#revision';}else{dsub=v;if(location.hash!=='#diario')location.hash='#diario';else render();}}
   else if(act==='wk'){wkOff=Math.min(0,wkOff+(+v));render();}
   else if(act==='revdone'){const r=S.cfg.reviews[a.dataset.mon]||(S.cfg.reviews[a.dataset.mon]={});r.done=!r.done;saveCfg();render();toast(r.done?'Revisión hecha':'Revisión reabierta');}

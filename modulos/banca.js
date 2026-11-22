@@ -10,7 +10,7 @@ function accStats(list){
 }
 function accCreate(list,d){
   const price=num(d.price),disc=num(d.disc)||0;let paid=num(d.paid);if(paid===null)paid=price!==null?Math.max(0,price-disc):0;
-  const a={id:uid(),firm:(d.firm||'').trim()||'Prop firm',plan:(d.plan||'').trim()||'Cuenta',plat:(d.plat||'').trim(),size:num(d.size),date:d.date||dateOf(Date.now()),order:(d.order||'').trim(),price:price===null?paid:price,disc,paid,coupon:(d.coupon||'').trim(),pay:(d.pay||'').trim(),note:(d.note||'').trim(),mkt:d.mkt==='cfd'?'cfd':'fut',dd:num(d.dd),trail:d.trail!=='fijo',lockAt:num(d.lockAt),target:num(d.target),dayLim:num(d.dayLim),minDays:num(d.minDays),norms:(d.norms||'').trim(),st:'eval',hist:[],payouts:[],fees:[]};
+  const a={id:uid(),firm:(d.firm||'').trim()||'Prop firm',plan:(d.plan||'').trim()||'Cuenta',plat:(d.plat||'').trim(),size:num(d.size),date:d.date||dateOf(Date.now()),order:(d.order||'').trim(),price:price===null?paid:price,disc,paid,coupon:(d.coupon||'').trim(),pay:(d.pay||'').trim(),note:(d.note||'').trim(),mkt:d.mkt==='cfd'?'cfd':'fut',dd:num(d.dd),trail:d.trail!=='fijo',lockAt:num(d.lockAt),lossN:num(d.lossN)||4,target:num(d.target),dayLim:num(d.dayLim),minDays:num(d.minDays),norms:(d.norms||'').trim(),st:'eval',hist:[],payouts:[],fees:[]};
   a.hist.push({ts:accTs(a.date),st:'eval',note:'Compra'});list.push(a);return a;
 }
 /* ---------- instrumentos por tipo de cuenta ---------- */
@@ -23,11 +23,12 @@ function accState(a){
   const T=Object.values(S.trades).filter(t=>t.acc===a.id&&t.res!=null),byD={};
   T.forEach(t=>{byD[t.date]=(byD[t.date]||0)+t.res;});
   const days=Object.keys(byD).sort(),pay=a.st==='funded'?accSum(a.payouts):0;
-  let b=start,peak=start;days.forEach(d=>{b+=byD[d];if(b>peak)peak=b;});
+  const today=dateOf(Date.now());let b=start,peak=start;days.forEach(d=>{b+=byD[d];if(d<today&&b>peak)peak=b;});   // el mínimo solo sube al CIERRE del día: lo de hoy no cuenta aún
   const bal=b-pay,dd=+a.dd||0;
   let min=null;if(dd){min=a.trail===false?start-dd:peak-dd;if(a.lockAt!=null&&a.lockAt!==''&&isFinite(+a.lockAt))min=Math.min(min,+a.lockAt);}
-  const tn=byD[dateOf(Date.now())]||0,tg=+a.target>0?start+(+a.target):null;
-  return{start,bal,peak,min,dd,margin:min==null?null:bal-min,target:tg,toTarget:tg==null?null:tg-bal,days:days.length,minDays:+a.minDays||0,dayLim:+a.dayLim||0,todayNet:tn,dayLeft:+a.dayLim>0?(+a.dayLim)+Math.min(0,tn):null};
+  const tn=byD[today]||0,tg=+a.target>0?start+(+a.target):null,N=+a.lossN>0?+a.lossN:4,margin=min==null?null:bal-min,dl=+a.dayLim>0?(+a.dayLim)+Math.min(0,tn):null;
+  let sug=null;if(margin!=null){sug=margin>0?margin/N:0;if(dl!=null)sug=Math.min(sug,dl);sug=Math.max(0,Math.floor(sug));}
+  return{N,sug,start,bal,peak,min,dd,margin:min==null?null:bal-min,target:tg,toTarget:tg==null?null:tg-bal,days:days.length,minDays:+a.minDays||0,dayLim:+a.dayLim||0,todayNet:tn,dayLeft:+a.dayLim>0?(+a.dayLim)+Math.min(0,tn):null};
 }
 function accStateHTML(a){
   if(!(a.st==='eval'||a.st==='funded'))return '';
@@ -36,6 +37,7 @@ function accStateHTML(a){
   const warn=s.margin!=null&&s.dd&&s.margin<0.25*s.dd?'neg':'';
   let h='<div class="stats" style="margin-top:10px">'+stat('Balance',plain(s.bal))+(s.min!=null?stat('Mínimo permitido',plain(s.min))+stat('Te queda',plain(s.margin),warn):'')+'</div>';
   if(s.target!=null||s.minDays)h+='<div class="stats" style="margin-top:10px">'+(s.target!=null?stat('Objetivo',plain(s.target))+stat(s.toTarget<=0?'Objetivo':'Te falta',s.toTarget<=0?'Cumplido ✓':plain(s.toTarget),s.toTarget<=0?'pos':''):'')+stat('Días operados',s.days+(s.minDays?' de '+s.minDays:''))+'</div>';
+  if(s.sug!=null)h+='<div class="insight '+(s.sug>0?'':'bad')+'" style="margin-top:10px">'+(s.sug>0?'Riesgo máximo sugerido en la siguiente operación: <b>'+plain(s.sug)+'</b>. Así aguantarías '+s.N+' pérdidas seguidas antes de llegar al mínimo.':'<b>No operes:</b> estás en el mínimo permitido o en el límite del día.')+'</div>';
   if(s.dayLim)h+='<div class="stats" style="margin-top:10px">'+stat('Pérdida diaria máx.',plain(s.dayLim))+stat('Hoy',s.todayNet?money(s.todayNet):'—',cls(s.todayNet))+stat('Hoy te quedan',plain(s.dayLeft),s.dayLeft<0.25*s.dayLim?'neg':'')+'</div>';
   if(s.min!=null&&s.target!=null&&s.target>s.min){const sp=v=>Math.max(0,Math.min(100,100*(v-s.min)/(s.target-s.min))).toFixed(1);
     h+='<div class="rng"><u style="left:'+sp(s.start)+'%"></u><i style="left:'+sp(s.bal)+'%"></i></div><div class="row small muted"><span>mínimo '+plain(s.min)+'</span><span>objetivo '+plain(s.target)+'</span></div>';}
@@ -82,6 +84,12 @@ function lucidDays(){
       saveCfg();renderBanca();toast('Días cargados');}}]);
 }
 
+function accCurve(a){
+  const T=Object.values(S.trades).filter(t=>t.acc===a.id&&t.res!=null).sort((x,y)=>x.ts-y.ts);
+  if(T.length<2)return '';
+  let c=0;const g=agg(T);
+  return '<div style="margin-top:12px"><div class="small muted" style="margin-bottom:4px">Evolución de esta cuenta · '+g.c+' operaciones'+(g.win==null?'':' · '+Math.round(g.win)+' % ganadas')+'</div>'+chartLine([0].concat(T.map(t=>(c+=t.res))))+'</div>';
+}
 function accActiveList(){return accData().list.filter(a=>a.st==='eval'||a.st==='funded').sort((x,y)=>accTs(y.date)-accTs(x.date));}
 
 /* ventana de diálogo sencilla; una acción que devuelve false deja el diálogo abierto */
@@ -110,7 +118,7 @@ function renderBanca(){
      accStateHTML(a)+'<div class="stats" style="margin-top:10px"><div class="stat"><small>Pagado</small><b>'+plain(a.paid)+'</b></div><div class="stat"><small>Cobrado</small><b>'+plain(pays)+'</b></div><div class="stat"><small>Neto</small><b class="'+cls(net)+'">'+money(net)+'</b></div></div>'+
      (a.disc?'<p class="small muted" style="margin:8px 0 0">Precio '+plain(a.price)+' − descuento '+plain(a.disc)+(a.coupon?' ('+esc(a.coupon)+')':'')+'</p>':'')+
      (a.tv?'<p class="small muted" style="margin:8px 0 0">Saldo según Tradovate: <b>'+plain(a.tv.netLiq)+'</b> · P/L total '+money(a.tv.totalPL)+' ('+new Date(a.tv.ts).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+')</p>':'')+
-     '<div class="acts" style="margin-top:12px">'+(a.st==='eval'?bt('funded','La pasé a funded')+bt('lost','La perdí'):'')+(a.st==='funded'?bt('lost','La perdí')+bt('closed','Cerrar'):'')+((a.st==='lost'||a.st==='closed')?bt('eval','Reabrir'):'')+((a.st==='eval'||a.st==='funded')?bt('day','Día sin detalle')+bt('sync','Cuadrar balance'):'')+bt('pay','Anotar cobro')+bt('fee','Anotar gasto')+bt('edit','Editar')+bt('del','Borrar')+'</div>'+
+     accCurve(a)+'<div class="acts" style="margin-top:12px">'+(a.st==='eval'?bt('funded','La pasé a funded')+bt('lost','La perdí'):'')+(a.st==='funded'?bt('lost','La perdí')+bt('closed','Cerrar'):'')+((a.st==='lost'||a.st==='closed')?bt('eval','Reabrir'):'')+((a.st==='eval'||a.st==='funded')?bt('day','Día sin detalle')+bt('sync','Cuadrar balance'):'')+'<button class="btn sm" data-act="dacc" data-v="'+a.id+'">Ver su diario</button>'+bt('pay','Anotar cobro')+bt('fee','Anotar gasto')+bt('edit','Editar')+bt('del','Borrar')+'</div>'+
      '<details style="margin-top:10px"><summary class="small muted">Historial ('+(a.hist.length+a.payouts.length+a.fees.length)+')</summary><ul class="lst small">'+hist+movs+'</ul></details>'+(a.note?'<p class="small muted" style="margin:8px 0 0">'+esc(a.note)+'</p>':'')+'</section>';
   };
   $('#view').innerHTML='<div class="wrap">'+header('Prop firms','Banca')+'<div class="stack">'+
@@ -130,11 +138,11 @@ function accForm(a){
    '<label class="field">Fecha de compra<input id="aD" type="date" value="'+v(a.date||dateOf(Date.now()))+'"></label><label class="field">Nº de pedido<input id="aO" value="'+v(a.order)+'"></label>'+
    '<label class="field">Precio ($)<input id="aPr" inputmode="decimal" value="'+v(a.price)+'"></label><label class="field">Descuento ($)<input id="aDi" inputmode="decimal" value="'+v(a.disc)+'"></label>'+
    '<label class="field">Pagado ($)<input id="aPa" inputmode="decimal" value="'+v(a.paid)+'" placeholder="precio − descuento"></label><label class="field">Cupón<input id="aC" value="'+v(a.coupon)+'"></label>'+
-   '<label class="field">Método de pago<input id="aMe" value="'+v(a.pay)+'"></label><label class="field">Nota<input id="aN" value="'+v(a.note)+'"></label></div>'+'<h3 style="margin:16px 0 8px">Reglas de la cuenta</h3><div class="fgrid"><label class="field">Mercado<select id="aMk" style="'+selStyle+'"><option value="fut"'+(a.mkt==='cfd'?'':' selected')+'>Futuros (MNQ)</option><option value="cfd"'+(a.mkt==='cfd'?' selected':'')+'>CFDs (oro y divisas)</option></select></label>'+'<label class="field">Pérdida máxima ($)<input id="aDd" inputmode="decimal" value="'+v(a.dd)+'" placeholder="2000"></label>'+'<label class="field">El mínimo…<select id="aTr" style="'+selStyle+'"><option value="sigue"'+(a.trail===false?'':' selected')+'>sigue al máximo del cierre</option><option value="fijo"'+(a.trail===false?' selected':'')+'>es fijo</option></select></label>'+'<label class="field">Deja de subir en ($, opcional)<input id="aLk" inputmode="decimal" value="'+v(a.lockAt)+'"></label>'+'<label class="field">Objetivo de beneficio ($)<input id="aTg" inputmode="decimal" value="'+v(a.target)+'" placeholder="3000"></label>'+'<label class="field">Pérdida diaria máx. ($)<input id="aDl" inputmode="decimal" value="'+v(a.dayLim)+'" placeholder="1200"></label>'+'<label class="field">Días mínimos<input id="aMd" inputmode="decimal" value="'+v(a.minDays)+'"></label></div>'+'<label class="field" style="margin-top:10px">Normas de la cuenta (texto libre)<textarea id="aNo" style="min-height:70px;background:var(--page2);border:1px solid var(--line);border-radius:5px;padding:8px 12px">'+esc(a.norms||'')+'</textarea></label>',
+   '<label class="field">Método de pago<input id="aMe" value="'+v(a.pay)+'"></label><label class="field">Nota<input id="aN" value="'+v(a.note)+'"></label></div>'+'<h3 style="margin:16px 0 8px">Reglas de la cuenta</h3><div class="fgrid"><label class="field">Mercado<select id="aMk" style="'+selStyle+'"><option value="fut"'+(a.mkt==='cfd'?'':' selected')+'>Futuros (MNQ)</option><option value="cfd"'+(a.mkt==='cfd'?' selected':'')+'>CFDs (oro y divisas)</option></select></label>'+'<label class="field">Pérdida máxima ($)<input id="aDd" inputmode="decimal" value="'+v(a.dd)+'" placeholder="2000"></label>'+'<label class="field">El mínimo…<select id="aTr" style="'+selStyle+'"><option value="sigue"'+(a.trail===false?'':' selected')+'>sigue al máximo del cierre</option><option value="fijo"'+(a.trail===false?' selected':'')+'>es fijo</option></select></label>'+'<label class="field">Deja de subir en ($, opcional)<input id="aLk" inputmode="decimal" value="'+v(a.lockAt)+'"></label>'+'<label class="field">Objetivo de beneficio ($)<input id="aTg" inputmode="decimal" value="'+v(a.target)+'" placeholder="3000"></label>'+'<label class="field">Pérdida diaria máx. ($)<input id="aDl" inputmode="decimal" value="'+v(a.dayLim)+'" placeholder="1200"></label>'+'<label class="field">Días mínimos<input id="aMd" inputmode="decimal" value="'+v(a.minDays)+'"></label><label class="field">Pérdidas seguidas que quieres aguantar<input id="aLn" inputmode="decimal" value="'+v(a.lossN||4)+'"></label></div>'+'<label class="field" style="margin-top:10px">Normas de la cuenta (texto libre)<textarea id="aNo" style="min-height:70px;background:var(--page2);border:1px solid var(--line);border-radius:5px;padding:8px 12px">'+esc(a.norms||'')+'</textarea></label>',
    [{label:'Cancelar'},{label:'Guardar',primary:true,run:()=>{
-     const g=id=>document.getElementById(id).value,d={firm:g('aF'),plan:g('aP'),plat:g('aPl'),size:g('aS'),date:g('aD'),order:g('aO'),price:g('aPr'),disc:g('aDi'),paid:g('aPa'),coupon:g('aC'),pay:g('aMe'),note:g('aN'),mkt:g('aMk'),dd:g('aDd'),trail:g('aTr'),lockAt:g('aLk'),target:g('aTg'),dayLim:g('aDl'),minDays:g('aMd'),norms:g('aNo')};
+     const g=id=>document.getElementById(id).value,d={firm:g('aF'),plan:g('aP'),plat:g('aPl'),size:g('aS'),date:g('aD'),order:g('aO'),price:g('aPr'),disc:g('aDi'),paid:g('aPa'),coupon:g('aC'),pay:g('aMe'),note:g('aN'),mkt:g('aMk'),dd:g('aDd'),trail:g('aTr'),lockAt:g('aLk'),lossN:g('aLn'),target:g('aTg'),dayLim:g('aDl'),minDays:g('aMd'),norms:g('aNo')};
      const acc=accData();
-     if(a.id){const t=acc.list.find(x=>x.id===a.id);if(t){const n=accCreate([],d);['firm','plan','plat','size','date','order','price','disc','paid','coupon','pay','note','mkt','dd','trail','lockAt','target','dayLim','minDays','norms'].forEach(k=>{t[k]=n[k];});}}
+     if(a.id){const t=acc.list.find(x=>x.id===a.id);if(t){const n=accCreate([],d);['firm','plan','plat','size','date','order','price','disc','paid','coupon','pay','note','mkt','dd','trail','lockAt','lossN','target','dayLim','minDays','norms'].forEach(k=>{t[k]=n[k];});}}
      else accCreate(acc.list,d);
      saveCfg();renderBanca();toast('Cuenta guardada');
    }}]);
@@ -163,5 +171,5 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-bk]');if(b
 /* tarjeta resumen para Hoy */
 function bancaCard(){
   const L=accData().list,s=accStats(L);
-  return '<section class="card"><div class="row"><h3 style="margin:0">Banca</h3><a class="small" href="#banca" style="color:var(--yellow)">Abrir</a></div><div class="stats" style="margin-top:10px">'+stat('Cuentas activas',s.eval+s.funded)+stat('Gastado',plain(s.spent))+stat('Neto',L.length?money(s.net):'—',cls(s.net))+'</div>'+accActiveList().map(a=>({a,s:accState(a)})).filter(x=>x.s&&(x.s.min!=null||x.s.dayLim)).map(x=>'<div class="row small" style="margin-top:8px"><span>'+esc(x.a.plan)+'</span><span>'+plain(x.s.bal)+(x.s.margin!=null?' · te quedan <b class="'+(x.s.dd&&x.s.margin<0.25*x.s.dd?'neg':'')+'">'+plain(x.s.margin)+'</b>':'')+'</span></div>').join('')+'</section>';
+  return '<section class="card"><div class="row"><h3 style="margin:0">Banca</h3><a class="small" href="#banca" style="color:var(--yellow)">Abrir</a></div><div class="stats" style="margin-top:10px">'+stat('Cuentas activas',s.eval+s.funded)+stat('Gastado',plain(s.spent))+stat('Neto',L.length?money(s.net):'—',cls(s.net))+'</div>'+accActiveList().map(a=>({a,s:accState(a)})).filter(x=>x.s&&(x.s.min!=null||x.s.dayLim)).map(x=>'<div class="row small" style="margin-top:8px"><span>'+esc(x.a.plan)+'</span><span>'+plain(x.s.bal)+(x.s.margin!=null?' · te quedan <b class="'+(x.s.dd&&x.s.margin<0.25*x.s.dd?'neg':'')+'">'+plain(x.s.margin)+'</b>':'')+(x.s.sug!=null?' · riesgo máx. <b>'+plain(x.s.sug)+'</b>':'')+'</span></div>').join('')+'</section>';
 }
