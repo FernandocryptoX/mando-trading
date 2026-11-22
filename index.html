@@ -238,8 +238,21 @@ const chkN=t=>CHK.filter(q=>chkAns(t,q)).length;
 const chkDone=t=>chkN(t)===CHK.length;
 const chkScore=t=>chkDone(t)?CHK.filter(q=>t.chk[q[0]]===q[2]).length:null;
 const chkFails=t=>CHK.filter(q=>chkAns(t,q)&&t.chk[q[0]]!==q[2]).map(q=>q[3]);
+/* Setup en 3 bloques (con timeframe, para que se pueda medir): key level, IFVG de entrada y confluencias */
+const KLS=['FVG de 1 h','FVG de 4 h','FVG diario','Alto o bajo de 4 h','NDOG / NWOG','Otro','Sin key level'];
+const IFVGS=['30 s','1 min','2 min','3 min','5 min','Sin IFVG'];
+const CONFS=[
+ ['Barrida previa','El precio tomó un high o un low (stops) justo antes de tu entrada.'],
+ ['IFVG del timeframe más alto de la ML','Entraste con el IFVG del FVG de mayor temporalidad dentro de la manipulation leg.'],
+ ['Condición puesta antes','Antes de entrar habías puesto un «si pasa esto, entonces…» en un FVG de 5 o 15 min.'],
+ ['Equilibrio (zona gris)','Compraste en descuento o vendiste en premium del rango de 5 min.'],
+ ['Low resistance liquidity a favor','Había muchos altos o bajos alineados sin quitar en tu dirección.'],
+ ['SMT con true manipulation','Divergencia entre NQ y ES con los dos índices en un sitio donde tiene sentido distribuir.'],
+ ['Gap esponsoreado','El FVG usado era el primero que se crea tras tocar el key level.'],
+ ['Sesgo diario a favor','Tu daily bias iba en la dirección de la operación.']];
+const hasSetup=t=>(t.setup||[]).length>0||!!(t.kl&&t.ifvg);
 /* v:1 = registro de la fase 1 (completa con setup y emociones); v:2 = registro de la fase 2 (además análisis HTF/LTF y checklist) */
-const isPend=t=>t.v>=1&&t.res!=null&&!((t.setup||[]).length&&t.pre&&t.post&&(t.v<2||(String(t.htf||'').trim()&&String(t.ltf||'').trim()&&chkDone(t))));
+const isPend=t=>t.v>=1&&t.res!=null&&!(t.pre&&t.post&&(t.v<2?hasSetup(t):(t.kl&&t.ifvg&&String(t.htf||'').trim()&&String(t.ltf||'').trim()&&chkDone(t))));
 const median=a=>{const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;};
 
 /* ============ estado y guardado ============ */
@@ -349,11 +362,12 @@ function renderHoy(){
 }
 
 function tradeRow(t){
-  const sd=(t.setup||[]).slice(0,3).join(' · ')||'Sin setup';
+  const sd=t.kl?(t.kl+' · '+(!t.ifvg||t.ifvg==='Sin IFVG'?'sin IFVG':'IFVG '+t.ifvg)):((t.setup||[]).slice(0,3).join(' · ')||'Sin setup');
   const tags=[];
   if(isPend(t))tags.push('<span class="tag neu">por completar</span>');
   if(t.kind)tags.push('<span class="tag">'+OP_TIPO_N[t.kind]+'</span>');
   if(t.risk>0)tags.push('<span class="tag">riesgo '+plain(t.risk)+(t.rr>0?' · '+rrTxt(t.rr):'')+'</span>');
+  if(t.conf&&t.conf.length)tags.push('<span class="tag">'+t.conf.length+' confluencias</span>');
   const ps=chkScore(t);if(ps!=null)tags.push('<span class="tag '+(ps>=6?'good':ps>=4?'neu':'bad')+'">Proceso '+ps+'/8</span>');
   if(t.pre)tags.push('<span class="tag '+(EMO_TONE[t.pre]||'')+'">'+esc(t.pre)+'</span>');
   durs(t).slice(0,2).forEach(e=>tags.push('<span class="tag '+(EMO_TONE[e]||'')+'">durante: '+esc(e)+'</span>'));
@@ -391,6 +405,14 @@ function insights(a){
   if(ed&&ed.net<0)out.push(['Con <b>'+esc(ed.k.toLowerCase())+'</b> durante la operación llevas '+money(ed.net)+' en '+ed.c+' operaciones.','bad']);
   const em=group(cl,t=>t.pre).filter(x=>x.c>=3&&EMO_TONE[x.k]!=='good').sort((x,y)=>x.net-y.net)[0];
   if(em&&em.net<0)out.push(['Entrar con <b>'+esc(em.k.toLowerCase())+'</b> te ha costado <b>'+money(em.net)+'</b> en '+em.c+' operaciones.','bad']);
+  const sk=cl.filter(t=>t.kl);
+  const noKL=sk.filter(t=>t.kl==='Sin key level'),noIF=sk.filter(t=>t.ifvg==='Sin IFVG');
+  if(noKL.length>=2)out.push(['Entraste <b>sin key level</b> '+noKL.length+' veces: '+money(sum(noKL))+'.',sum(noKL)<0?'bad':'good']);
+  if(noIF.length>=2)out.push(['Entraste <b>sin IFVG</b> '+noIF.length+' veces: '+money(sum(noIF))+'.',sum(noIF)<0?'bad':'good']);
+  const hiC=sk.filter(t=>(t.conf||[]).length>=5),loC=sk.filter(t=>(t.conf||[]).length<=2);
+  if(hiC.length>=3&&loC.length>=3){const ah=sum(hiC)/hiC.length,al=sum(loC)/loC.length;out.push(['Con 5 o más confluencias ganas de media <b>'+money(ah)+'</b> ('+hiC.length+' op.); con 2 o menos, <b>'+money(al)+'</b> ('+loC.length+' op.).',ah>al?'good':'bad']);}
+  const bk=group(sk,t=>t.kl).filter(x=>x.c>=3&&x.k!=='Sin key level'&&x.k!=='Otro').sort((x,y)=>y.net-x.net)[0];
+  if(bk&&bk.net>0)out.push(['Tu key level más rentable es <b>'+esc(bk.k)+'</b>: '+money(bk.net)+' en '+bk.c+' operaciones.','good']);
   /* 2) lo que sí funciona */
   const si=r.find(x=>x.k==='Sí'),no=r.filter(x=>x.k!=='Sí'),noN=no.reduce((x,y)=>x+y.c,0),noNet=no.reduce((x,y)=>x+y.net,0);
   if(si&&si.c>=3&&noN>=3)out.push(['Siguiendo tus reglas ganas de media <b>'+money(si.avg)+'</b> por operación ('+si.c+' op.). Sin seguirlas, <b>'+money(noNet/noN)+'</b> ('+noN+' op.).',noNet/noN<si.avg?'good':'bad']);
@@ -426,7 +448,11 @@ function renderDiario(){
      statSection('Errores',group(cl.filter(t=>t.errs&&t.errs.length),t=>t.errs))+
      statSection('Emoción antes de entrar',group(cl,t=>t.pre))+
      statSection('Emoción durante la operación',group(cl,t=>durs(t)))+
-     statSection('Setup',group(cl,t=>t.setup))+
+     statSection('Key level',group(cl.filter(t=>t.kl),t=>t.kl))+
+     statSection('IFVG de entrada',group(cl.filter(t=>t.ifvg),t=>t.ifvg==='Sin IFVG'?'Sin IFVG':'IFVG de '+t.ifvg))+
+     statSection('Cuántas confluencias llevabas',group(cl.filter(t=>t.kl),t=>{const n=(t.conf||[]).length;return (n<=2?'0 a 2':n<=4?'3 a 4':'5 o más')+' confluencias';}),'Si las de 5 o más rinden mejor, esa es tu operación «A+»: busca solo esas.')+
+     statSection('Cada confluencia',group(cl.filter(t=>t.kl),t=>t.conf||[]),'Cuántas operaciones la llevaban y cómo acabaron.')+
+     statSection('Setup (operaciones antiguas)',group(cl,t=>t.setup))+
      statSection('Riesgo por operación',group(cl.filter(t=>t.risk>0),t=>plain(t.risk)),'Mira si las operaciones de más riesgo acaban peor: suele ir ligado a nervios y a querer recuperar.')+
      statSection('RR planeado',group(cl.filter(t=>t.rr>0),t=>rrTxt(t.rr)))+
      reentrada(cl)+
@@ -490,8 +516,8 @@ setInterval(tick,1000);
 
 /* ============ hoja de anotación ============ */
 let F=null;
-function blank(){const n=Date.now();return{id:null,side:'',state:null,amt:'',r:'',risk:S.cfg.lastRisk||'',rr:S.cfg.lastRR||'',rrOther:false,kind:S.cfg.lastKind||'',v:2,htf:'',ltf:'',chk:{},mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:dateOf(n),time:hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
-function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
+function blank(){const n=Date.now();return{id:null,side:'',state:null,amt:'',r:'',risk:S.cfg.lastRisk||'',rr:S.cfg.lastRR||'',rrOther:false,kind:S.cfg.lastKind||'',v:2,htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:dateOf(n),time:hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
+function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),kl:t.kl||'',ifvg:t.ifvg||'',conf:(t.conf||[]).slice(),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
 function openSheet(t){F=t?fromTrade(t):blank();renderSheet();$('#sheetWrap').hidden=false;document.body.classList.add('noscroll');}
 function closeSheet(){F=null;$('#sheetWrap').hidden=true;document.body.classList.remove('noscroll');}
 const chip=(g,v,on,tone)=>'<button type="button" class="chip '+(tone||'')+(on?' on':'')+'" data-f="'+g+':'+esc(v)+'" aria-pressed="'+(on?'true':'false')+'">'+esc(v)+'</button>';
@@ -523,7 +549,9 @@ function renderSheet(){
     kick('Por la tarde, con calma')+
     '<div><div class="lbl">Análisis del high time frame (1 línea)</div><input id="fHtf" value="'+esc(F.htf)+'" placeholder="DOL: gap diario; H1 y H4 alcistas respetando gaps"></div>'+
     '<div><div class="lbl">Análisis del low time frame (1 línea)</div><input id="fLtf" value="'+esc(F.ltf)+'" placeholder="Condición: FVG de 15 min; IFVG de la ML buscando la LRL"></div>'+
-    '<div><div class="lbl">¿Qué viste?</div><div class="chips">'+setups.map(s=>chip('setup',s,F.setup.includes(s))).join('')+'</div><div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="fCustom" placeholder="Otro elemento" style="flex:1"><button type="button" class="btn sm" data-f="addsetup">Añadir</button></div></div>'+
+    '<div><div class="lbl">Key level que toqué</div><div class="chips">'+KLS.map(k=>chip('kl',k,F.kl===k,k==='Sin key level'?'bad':'')).join('')+'</div></div>'+
+    '<div><div class="lbl">Entrada: IFVG de…</div><div class="chips">'+IFVGS.map(k=>chip('ifvg',k,F.ifvg===k,k==='Sin IFVG'?'bad':'')).join('')+'</div></div>'+
+    '<div><div class="lbl">Confluencias <span class="muted small">(solo las que puedas comprobar en el gráfico)</span> · <b>'+F.conf.length+'/'+CONFS.length+'</b></div><div class="chips">'+CONFS.map(c=>chip('conf',c[0],F.conf.includes(c[0]))).join('')+'</div><details style="margin-top:8px"><summary class="small muted">¿Qué significa cada una?</summary><div class="small muted" style="margin-top:6px">'+CONFS.map(c=>'<p style="margin:0 0 6px"><b>'+esc(c[0])+':</b> '+esc(c[1])+'</p>').join('')+'</div></details>'+(F.setup.length&&!F.kl?'<p class="small muted" style="margin:8px 0 0">Setup antiguo de esta operación: '+esc(F.setup.join(' · '))+'</p>':'')+'</div>'+
     '<div><div class="lbl">Cómo te sentías</div>'+emoRow('pre','Antes')+emoRow('post','Después')+'</div>'+
     chkBlock+
     '<div><div class="lbl">Nota (opcional)</div><input id="fNote" value="'+esc(F.note)+'" placeholder="Una línea"></div>'+
@@ -548,7 +576,7 @@ function saveForm(){
   let ts=Date.parse(F.date+'T'+(F.time||'12:00')+':00');if(!isFinite(ts))ts=Date.now();
   const old=F.id&&S.trades[F.id]?S.trades[F.id]:{};
   if(old.ts&&old.date===F.date&&old.time===F.time)ts=old.ts;
-  const t=Object.assign({},old,{id:F.id||uid(),ts,date:F.date||dateOf(ts),time:F.time||hm(ts),side:F.side,acc:F.acc,instr:F.instr.trim()||'NQ',setup:F.setup,res,r,risk:risk>0?risk:null,rr:rr>0?rr:null,kind:F.kind,htf:F.htf.trim(),ltf:F.ltf.trim(),chk:F.chk,pre:F.pre,dur:F.dur,post:F.post,rules:F.rules,errs:(F.rules==='part'||F.rules==='no')?F.errs:[],note:F.note.trim()});
+  const t=Object.assign({},old,{id:F.id||uid(),ts,date:F.date||dateOf(ts),time:F.time||hm(ts),side:F.side,acc:F.acc,instr:F.instr.trim()||'NQ',setup:F.setup,res,r,risk:risk>0?risk:null,rr:rr>0?rr:null,kind:F.kind,kl:F.kl,ifvg:F.ifvg,conf:F.conf,htf:F.htf.trim(),ltf:F.ltf.trim(),chk:F.chk,pre:F.pre,dur:F.dur,post:F.post,rules:F.rules,errs:(F.rules==='part'||F.rules==='no')?F.errs:[],note:F.note.trim()});
   if(strict)t.v=F.v||2;
   if(F.ex)t.ex=true;
   if(risk>0)S.cfg.lastRisk=String(risk);if(rr>0)S.cfg.lastRR=String(rr);if(F.kind)S.cfg.lastKind=F.kind;
@@ -575,6 +603,9 @@ document.addEventListener('click',e=>{
     else if(k==='rr'){if(v==='other'){F.rrOther=true;F.rr='';}else{F.rrOther=false;F.rr=v;}}
     else if(k==='kind'){F.kind=F.kind===v?'':v;}
     else if(k==='full'){F.mode='full';}
+    else if(k==='kl'){F.kl=F.kl===v?'':v;}
+    else if(k==='ifvg'){F.ifvg=F.ifvg===v?'':v;}
+    else if(k==='conf'){F.conf=F.conf.includes(v)?F.conf.filter(x=>x!==v):F.conf.concat(v);}
     else if(k==='chk'){const p=v.split(':');if(F.chk[p[0]]===+p[1])delete F.chk[p[0]];else F.chk[p[0]]=+p[1];}
     else if(k==='rules'){F.rules=F.rules===v?'':v;}
     else if(k==='addsetup'){const inp=$('#fCustom'),x=inp?inp.value.trim():'';if(x){if(!S.cfg.customSetups.includes(x)&&!SETUPS.includes(x)){S.cfg.customSetups.push(x);saveCfg();}if(!F.setup.includes(x))F.setup.push(x);}}
