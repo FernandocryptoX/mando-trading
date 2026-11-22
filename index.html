@@ -190,6 +190,7 @@ input[type=text],input[type=number],input[type=date],input[type=time],input[inpu
 <script src="modulos/banca.js"></script>
 <script src="modulos/tradovate.js"></script>
 <script src="modulos/sync.js"></script>
+<script src="modulos/imagenes.js"></script>
 <script src="modulos/legacy.js"></script>
 <script>
 /* ============ utilidades ============ */
@@ -265,8 +266,11 @@ const hasSetup=t=>(t.setup||[]).length>0||!!(t.kl&&t.ifvg);
 /* Imágenes: enlaces de captura de TradingView (cámara → «Copiar enlace»). La vista previa sale de s3.tradingview.com/snapshots/<1.ª letra>/<ID>.png */
 const IMG_SLOTS=[['htf','HTF · 1 h y 4 h'],['inter','Intermedia · 5 y 15 min (las condiciones)'],['ejec','Ejecución · 1 a 5 min (tu entrada)'],['spx','S&P 500 (solo si hay SMT)']];
 const tvShareId=u=>{const m=/^https?:\/\/(?:[a-z]{2,3}\.)?tradingview\.com\/x\/([A-Za-z0-9]+)\/?/i.exec(String(u||'').trim());return m?m[1]:null;};
-const imgSrc=u=>{u=String(u||'').trim();const id=tvShareId(u);if(id)return 'https://s3.tradingview.com/snapshots/'+id[0].toLowerCase()+'/'+id+'.png';return /^https:\/\/\S+\.(png|jpe?g|webp)(\?\S*)?$/i.test(u)?u:null;};
-const imgOk=u=>!!imgSrc(u);
+const imgIsStored=u=>/^img:[A-Za-z0-9_-]+$/.test(String(u||'').trim());
+const imgIsLink=u=>/^https?:\/\/\S+$/i.test(String(u||'').trim());
+const imgSrc=u=>{u=String(u||'').trim();const id=tvShareId(u);if(id)return 'https://s3.tradingview.com/snapshots/'+id[0].toLowerCase()+'/'+id+'.png';return imgIsLink(u)?u:null;};
+const imgOk=u=>imgIsStored(u)||imgIsLink(u);
+const imgTag=(u,cls)=>{u=String(u||'').trim();if(imgIsStored(u))return '<img class="'+(cls||'')+'" data-imgid="'+esc(u.slice(4))+'" alt="">';const s=imgSrc(u);return s?'<img class="'+(cls||'')+'" data-tvimg="1" data-href="'+esc(u)+'" loading="lazy" alt="" src="'+esc(s)+'">':'';};
 const imgCount=t=>IMG_SLOTS.slice(0,3).filter(s=>t.img&&imgOk(t.img[s[0]])).length;
 /* v:1 = registro de la fase 1 (completa con setup y emociones); v:2 = registro de la fase 2 (además análisis HTF/LTF y checklist) */
 const isPend=t=>t.v>=1&&t.res!=null&&!((t.kind==='bt'||(t.pre&&t.post))&&(t.v<2?hasSetup(t):(t.kl&&t.ifvg&&String(t.htf||'').trim()&&String(t.ltf||'').trim()&&chkDone(t)&&(t.v<3||imgCount(t)>=3))));
@@ -287,7 +291,7 @@ const clean=o=>JSON.parse(JSON.stringify(o));
 let cfgT=null;
 function saveCfg(){if(typeof cloudCfg==='function')cloudCfg();saveLocal();if(!DB.base)return;clearTimeout(cfgT);cfgT=setTimeout(()=>enqueue(()=>DB.base.set({cfg:clean(S.cfg)})),500);}
 function putTrade(t){if(typeof cloudTrade==='function')cloudTrade(t);S.trades[t.id]=t;saveLocal();if(DB.trades)enqueue(()=>DB.trades.doc(t.id).set(clean(t)));}
-function delTrade(id){delete S.trades[id];if(typeof cloudDelete==='function')cloudDelete(id);saveLocal();if(DB.trades)enqueue(()=>DB.trades.doc(id).delete());}
+function delTrade(id){if(typeof imgDropTrade==='function')imgDropTrade(S.trades[id]);delete S.trades[id];if(typeof cloudDelete==='function')cloudDelete(id);saveLocal();if(DB.trades)enqueue(()=>DB.trades.doc(id).delete());}
 async function initDb(){
   const timer=setTimeout(()=>{if(syncState==='wait')setSync('local');},10000);
   try{
@@ -454,7 +458,7 @@ function gallery(cl){
   if(!withImg.length)return '';
   const sel=withImg.filter(t=>dgal==='win'?t.res>0:dgal==='loss'?t.res<0:true).sort((a,b)=>b.ts-a.ts).slice(0,20);
   return '<section class="card"><h3>Revisar imágenes</h3><div class="seg" style="margin-bottom:10px">'+[['loss','Pérdidas'],['win','Ganadas'],['all','Todas']].map(x=>'<button data-act="dgal" data-v="'+x[0]+'" class="'+(dgal===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>'+
-   (sel.length?'<div class="ggrid">'+sel.map(t=>'<button class="gtile" data-act="edit" data-id="'+t.id+'"><img data-tvimg="1" loading="lazy" alt="" src="'+esc(imgSrc(first(t)))+'"><span class="gcap">'+esc(dShort(t.date).replace(/ \d{4}$/,''))+' · '+esc(t.kl||(t.setup||[])[0]||'Sin setup')+' · '+money(t.res)+'</span></button>').join('')+'</div>':'<p class="muted small" style="margin:0">No hay operaciones de este tipo con imagen.</p>')+
+   (sel.length?'<div class="ggrid">'+sel.map(t=>'<button class="gtile" data-act="edit" data-id="'+t.id+'">'+imgTag(first(t),'')+'<span class="gcap">'+esc(dShort(t.date).replace(/ \d{4}$/,''))+' · '+esc(t.kl||(t.setup||[])[0]||'Sin setup')+' · '+money(t.res)+'</span></button>').join('')+'</div>':'<p class="muted small" style="margin:0">No hay operaciones de este tipo con imagen.</p>')+
    '<p class="small muted" style="margin:10px 0 0">Busca patrones: ¿se repite la misma estructura en tus pérdidas? Toca una para abrirla.</p></section>';
 }
 function diarioSeg(a){return '<div class="seg">'+[['ops','Real'],['bt','Backtesting'],['stats','Conclusiones'],['rev','Revisión']].map(x=>'<button data-act="dsub" data-v="'+x[0]+'" class="'+(a===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';}
@@ -578,7 +582,7 @@ function renderSheet(){
   const kick=t=>'<div class="lbl" style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mint)">'+t+'</div>';
   const ft={chk:F.chk,kind:F.kind},cs=chkSet(F.kind),sc8=chkScore(ft);
   const chkBlock='<div><div class="lbl">Checklist del trade · <b>'+(sc8!=null?'Proceso '+sc8+'/'+cs.length:chkN(ft)+'/'+cs.length+' respondidas')+'</b></div>'+cs.map(q=>'<div class="chkq"><span>'+q[1]+'</span><div class="chips"><button type="button" class="chip '+(q[2]===1?'good':'bad')+(F.chk[q[0]]===1?' on':'')+'" data-f="chk:'+q[0]+':1">Sí</button><button type="button" class="chip '+(q[2]===0?'good':'bad')+(F.chk[q[0]]===0?' on':'')+'" data-f="chk:'+q[0]+':0">No</button></div></div>').join('')+'</div>';
-  const imgBlock='<div><div class="lbl">Imágenes · <b>'+IMG_SLOTS.slice(0,3).filter(s=>imgOk(F.img[s[0]])).length+'/3</b></div><p class="small muted" style="margin:0 0 8px">En TradingView: icono de la cámara → «Copiar enlace». Pégalo aquí y la vista previa sale sola.</p>'+IMG_SLOTS.map(s=>{const u=F.img[s[0]]||'',ok=imgOk(u);return '<div class="imgslot"><div class="small muted" style="margin-bottom:4px">'+s[1]+'</div><div class="row" style="flex-wrap:nowrap;gap:6px"><input id="fImg_'+s[0]+'" value="'+esc(u)+'" placeholder="https://www.tradingview.com/x/…" style="flex:1;min-width:0"><button type="button" class="btn sm" data-f="imgpaste:'+s[0]+'">Pegar</button>'+(u?'<button type="button" class="btn sm" data-f="imgclear:'+s[0]+'" aria-label="Quitar">✕</button>':'')+'</div>'+(u&&!ok?'<p class="small" style="color:var(--bad);margin:6px 0 0">Ese enlace no parece una captura: debe empezar por tradingview.com/x/ (en TradingView: cámara → Copiar enlace).</p>':'')+(ok?'<a href="'+esc(u)+'" target="_blank" rel="noopener"><img class="imgprev" data-tvimg="1" loading="lazy" alt="Vista previa" src="'+esc(imgSrc(u))+'"></a>':'')+'</div>';}).join('')+'</div>';
+  const imgBlock='<div><div class="lbl">Imágenes · <b>'+IMG_SLOTS.slice(0,3).filter(s=>imgOk(F.img[s[0]])).length+'/3</b></div><p class="small muted" style="margin:0 0 8px">Pega un enlace (TradingView: cámara → «Copiar enlace», o el de tu plataforma de backtesting) o sube una captura. Con Ctrl+V pegas una captura directamente.</p>'+IMG_SLOTS.map(s=>{const u=F.img[s[0]]||'',st=imgIsStored(u),ok=imgOk(u);return '<div class="imgslot"><div class="small muted" style="margin-bottom:4px">'+s[1]+'</div>'+(st?'<div class="small" style="margin:0 0 6px">Imagen subida ✓</div>':'<input id="fImg_'+s[0]+'" value="'+esc(u)+'" placeholder="Enlace, o Ctrl+V con una captura" style="width:100%">')+'<div class="row" style="gap:6px;margin-top:6px"><button type="button" class="btn sm" data-f="imgpaste:'+s[0]+'">Pegar</button><button type="button" class="btn sm" data-f="imgfile:'+s[0]+'">Subir imagen</button>'+(u?'<button type="button" class="btn sm" data-f="imgclear:'+s[0]+'" aria-label="Quitar">✕ Quitar</button>':'')+'</div>'+(u&&!ok?'<p class="small" style="color:var(--bad);margin:6px 0 0">Eso no parece un enlace ni una imagen. Pega un enlace que empiece por https:// o sube una captura.</p>':'')+(ok?(st?imgTag(u,'imgprev'):'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+imgTag(u,'imgprev')+'</a>'):'')+'</div>';}).join('')+'</div>';
   $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+title+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
    kick('Al cerrar la operación')+
    '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+'</div>'+btDay+
@@ -629,19 +633,19 @@ function saveForm(){
   if(!old.cr)t.cr=Date.now();
   if(F.kind){S.cfg.last=S.cfg.last||{};const d=S.cfg.last[F.kind]=S.cfg.last[F.kind]||{};if(risk>0)d.risk=String(risk);if(rr>0)d.rr=String(rr);S.cfg.lastKind=F.kind;if(F.kind==='bt'){S.cfg.lastBtDate=F.date;S.cfg.lastBtTime=F.time;}}
   if(risk>0)S.cfg.lastRisk=String(risk);if(rr>0)S.cfg.lastRR=String(rr);
-  S.cfg.instr=t.instr;putTrade(t);saveCfg();closeSheet();softRender();
+  S.cfg.instr=t.instr;putTrade(t);saveCfg();if(typeof imgCleanup==='function')imgCleanup(old,t);closeSheet();softRender();
   toast(isPend(t)?'Guardada · queda por completar (análisis, checklist e imágenes)':'Operación guardada');
   if(TVQ.length){const nid=TVQ.shift();if(S.trades[nid])setTimeout(()=>openSheet(S.trades[nid]),300);}
 }
 document.addEventListener('input',e=>{if(!F)return;const m={fAmt:'amt',fR:'r',fRisk:'risk',fRR:'rr',fHtf:'htf',fLtf:'ltf',fNote:'note',fInstr:'instr',fDate:'date',fTime:'time',fAcc:'acc'}[e.target.id];if(m)F[m]=e.target.value;if(e.target.id==='fAmt')F.amtAuto=false;if(e.target.id==='fRisk'||e.target.id==='fRR'){suggestAmt();const ai=document.getElementById('fAmt');if(ai&&F.amtAuto!==false)ai.value=F.amt;}});
 document.addEventListener('change',e=>{if(F&&e.target&&/^fImg_/.test(e.target.id)){F.img[e.target.id.slice(5)]=e.target.value.trim();renderSheet();}});
-document.addEventListener('paste',e=>{const el=e.target;if(F&&el&&/^fImg_/.test(el.id))setTimeout(()=>{F.img[el.id.slice(5)]=el.value.trim();renderSheet();},40);});
-document.addEventListener('error',e=>{const i=e.target;if(i&&i.tagName==='IMG'&&i.dataset&&i.dataset.tvimg){const s=document.createElement('span');s.className='small muted';s.textContent='Vista previa no disponible: abre el enlace.';i.replaceWith(s);}},true);
+document.addEventListener('paste',e=>{const el=e.target;if(!(F&&el&&/^fImg_/.test(el.id)))return;const f=[...((e.clipboardData&&e.clipboardData.files)||[])].find(x=>/^image\//.test(x.type));if(f){e.preventDefault();imgUploadToSlot(f,el.id.slice(5));return;}setTimeout(()=>{F.img[el.id.slice(5)]=el.value.trim();renderSheet();},40);});
+document.addEventListener('error',e=>{const i=e.target;if(i&&i.tagName==='IMG'&&i.dataset&&i.dataset.tvimg){let n;if(i.dataset.href){n=document.createElement('a');n.href=i.dataset.href;n.target='_blank';n.rel='noopener';n.className='small';n.textContent='Abrir captura ↗ (sin vista previa)';}else{n=document.createElement('span');n.className='small muted';n.textContent='Vista previa no disponible.';}i.replaceWith(n);}},true);
 document.addEventListener('click',e=>{
   const f=e.target.closest('[data-f]');
   if(f&&F){
     const s=f.dataset.f,i=s.indexOf(':'),k=i<0?s:s.slice(0,i),v=i<0?'':s.slice(i+1);
-    if(k==='close'){TVQ.length=0;closeSheet();return;}
+    if(k==='close'){TVQ.length=0;if(typeof imgDiscard==='function')imgDiscard();closeSheet();return;}
     if(k==='save'){saveForm();return;}
     if(k==='more'){F.more=!F.more;}
     else if(k==='del'){if(!F.del){F.del=true;}else{delTrade(F.id);closeSheet();softRender();toast('Operación borrada');return;}}
@@ -657,7 +661,8 @@ document.addEventListener('click',e=>{
     else if(k==='btday'){if(v==='next')F.date=nextWk(F.date||dateOf(Date.now()));else if(v==='same'&&S.cfg.lastBtDate)F.date=S.cfg.lastBtDate;}
     else if(k==='full'){F.mode='full';}
     else if(k==='imgclear'){delete F.img[v];}
-    else if(k==='imgpaste'){if(navigator.clipboard&&navigator.clipboard.readText)navigator.clipboard.readText().then(x=>{F.img[v]=String(x||'').trim();renderSheet();}).catch(()=>toast('Pega el enlace en el campo'));else toast('Pega el enlace en el campo');}
+    else if(k==='imgpaste'){imgPasteSlot(v);}
+    else if(k==='imgfile'){imgPickFile(v);}
     else if(k==='kl'){F.kl=F.kl===v?'':v;}
     else if(k==='ifvg'){F.ifvg=F.ifvg===v?'':v;}
     else if(k==='conf'){F.conf=F.conf.includes(v)?F.conf.filter(x=>x!==v):F.conf.concat(v);}
