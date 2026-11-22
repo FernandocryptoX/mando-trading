@@ -209,11 +209,19 @@ const uid=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2800);}
 
 /* ============ catálogos ============ */
-const SETUPS=['Key level','BSL tomado','SSL tomado','FVG 15m','FVG 5m','IFVG','Liquidez a favor','Baja resistencia','Sesgo a favor','Manipulation leg','CISD','Order block','Noticia'];
+const SETUPS=['Key level','BSL tomado','SSL tomado','FVG 15m','FVG 5m','IFVG','Liquidez a favor','Baja resistencia','Sesgo a favor','Manipulation leg','CISD','Order block','Noticia','Sin setup'];
 const EMOS=[['Calma','good'],['Confianza','good'],['Duda','neu'],['Aburrimiento','neu'],['Miedo','bad'],['Prisa','bad'],['Avaricia','bad'],['Venganza','bad']];
 const EMO_TONE=Object.fromEntries(EMOS);
 const ERRS=['Entré sin setup','Moví el stop','Sobreoperé','Cerré antes de tiempo','Aguanté de más','Tamaño excesivo','Entré tarde','Operé tras pérdida'];
 const RULES={si:'Sí',part:'A medias',no:'No'};
+const OP_TIPOS=[['bt','Backtesting'],['eval','Evaluación'],['fund','Fondeada / propia']];
+const OP_TIPO_N=Object.fromEntries(OP_TIPOS);
+const RRS=[1,1.5,2];
+const rrTxt=n=>'1:'+String(n).replace('.',',');
+const durs=t=>[].concat(t.dur||[]).filter(Boolean);
+/* v:1 = anotada con el registro nuevo. Está «por completar» hasta que tiene setup y emociones de antes y después. */
+const isPend=t=>t.v===1&&t.res!=null&&!((t.setup||[]).length&&t.pre&&t.post);
+const median=a=>{const s=a.slice().sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:null;};
 
 /* ============ estado y guardado ============ */
 const LS='centro-mando-v1';
@@ -307,6 +315,7 @@ function renderHoy(){
   const items=[];
   const ct=contractTodo(),stt=srsTodo(),nt=newsTodo();if(nt)items.push(nt);if(ct)items.push(ct);if(stt)items.push(stt);
   if(due)items.push('<a class="todo u" href="#revision" data-wk="'+due+'" style="text-decoration:none;color:inherit"><b>Revisión de la semana del '+niceDate(due)+'</b><span>Hacer</span></a>');
+  all().filter(isPend).slice(0,4).forEach(x=>items.push('<button class="todo u" data-act="edit" data-id="'+x.id+'"><b>Completa el diario: '+niceDate(x.date)+' '+esc(x.time||'')+' · '+(x.side==='short'?'venta':'compra')+' · '+money(x.res)+'</b><span>Completar</span></button>'));
   pend.slice(0,4).forEach(x=>items.push('<button class="todo u" data-act="edit" data-id="'+x.id+'"><b>Anota el resultado: '+niceDate(x.date)+' '+esc(x.time||'')+' · '+(x.side==='short'?'venta':'compra')+'</b><span>Abrir</span></button>'));
   norules.forEach(x=>items.push('<button class="todo" data-act="edit" data-id="'+x.id+'"><b>¿Seguiste tus reglas? '+niceDate(x.date)+'</b><span>Responder</span></button>'));
   $('#view').innerHTML='<div class="wrap">'+header(niceDate(t),'Hoy')+'<div class="stack">'+exBanner()+
@@ -323,7 +332,11 @@ function renderHoy(){
 function tradeRow(t){
   const sd=(t.setup||[]).slice(0,3).join(' · ')||'Sin setup';
   const tags=[];
+  if(isPend(t))tags.push('<span class="tag neu">por completar</span>');
+  if(t.kind)tags.push('<span class="tag">'+OP_TIPO_N[t.kind]+'</span>');
+  if(t.risk>0)tags.push('<span class="tag">riesgo '+plain(t.risk)+(t.rr>0?' · '+rrTxt(t.rr):'')+'</span>');
   if(t.pre)tags.push('<span class="tag '+(EMO_TONE[t.pre]||'')+'">'+esc(t.pre)+'</span>');
+  durs(t).slice(0,2).forEach(e=>tags.push('<span class="tag '+(EMO_TONE[e]||'')+'">durante: '+esc(e)+'</span>'));
   if(t.rules)tags.push('<span class="tag '+(t.rules==='si'?'good':t.rules==='no'?'bad':'neu')+'">Reglas: '+RULES[t.rules]+'</span>');
   (t.errs||[]).slice(0,2).forEach(e=>tags.push('<span class="tag bad">'+esc(e)+'</span>'));
   if(t.ex)tags.push('<span class="tag">ejemplo</span>');
@@ -340,36 +353,60 @@ function statSection(title,rows,note){
 
 function insights(a){
   const out=[],cl=closed(a),r=group(cl.filter(t=>t.rules),t=>RULES[t.rules]);
+  const sum=x=>x.reduce((p,t)=>p+t.res,0);
+  /* 1) lo que haces para fallar */
+  const lucky=cl.filter(t=>t.res>0&&(t.rules==='no'||t.rules==='part'));
+  if(lucky.length>=2)out.push(['Ganaste <b>'+lucky.length+'</b> operaciones rompiendo tus reglas ('+money(sum(lucky))+'). Son suerte, no proceso: repetirlas es apostar.','bad']);
+  const costly=group(a,t=>t.errs).filter(x=>x.c>=2).sort((x,y)=>x.net-y.net)[0];
+  if(costly&&costly.net<0)out.push(['El error que más dinero te cuesta es <b>'+esc(costly.k.toLowerCase())+'</b>: '+money(costly.net)+' en '+costly.c+' operaciones.','bad']);
+  const rk=cl.filter(t=>t.risk>0),med=median(rk.map(t=>t.risk));
+  if(rk.length>=6&&med){const big=rk.filter(t=>t.risk>1.5*med),nor=rk.filter(t=>t.risk<=1.5*med);
+    if(big.length>=3)out.push(['Cuando arriesgas más de lo habitual (más de '+plain(1.5*med)+') llevas <b>'+money(sum(big))+'</b> en '+big.length+' operaciones; el resto, '+money(sum(nor))+'.',sum(big)<0?'bad':'good']);}
+  const ed=group(cl,t=>durs(t)).filter(x=>x.c>=3&&EMO_TONE[x.k]!=='good').sort((x,y)=>x.net-y.net)[0];
+  if(ed&&ed.net<0)out.push(['Con <b>'+esc(ed.k.toLowerCase())+'</b> durante la operación llevas '+money(ed.net)+' en '+ed.c+' operaciones.','bad']);
+  const em=group(cl,t=>t.pre).filter(x=>x.c>=3&&EMO_TONE[x.k]!=='good').sort((x,y)=>x.net-y.net)[0];
+  if(em&&em.net<0)out.push(['Entrar con <b>'+esc(em.k.toLowerCase())+'</b> te ha costado <b>'+money(em.net)+'</b> en '+em.c+' operaciones.','bad']);
+  /* 2) lo que sí funciona */
   const si=r.find(x=>x.k==='Sí'),no=r.filter(x=>x.k!=='Sí'),noN=no.reduce((x,y)=>x+y.c,0),noNet=no.reduce((x,y)=>x+y.net,0);
   if(si&&si.c>=3&&noN>=3)out.push(['Siguiendo tus reglas ganas de media <b>'+money(si.avg)+'</b> por operación ('+si.c+' op.). Sin seguirlas, <b>'+money(noNet/noN)+'</b> ('+noN+' op.).',noNet/noN<si.avg?'good':'bad']);
-  const em=group(cl,t=>t.pre).filter(x=>x.c>=3).sort((x,y)=>x.net-y.net)[0];
-  if(em&&em.net<0)out.push(['Entrar con <b>'+esc(em.k.toLowerCase())+'</b> te ha costado <b>'+money(em.net)+'</b> en '+em.c+' operaciones.','bad']);
   const bs=group(cl,t=>t.setup).filter(x=>x.c>=3).sort((x,y)=>y.net-x.net)[0];
   if(bs&&bs.net>0)out.push(['Tu setup más rentable es <b>'+esc(bs.k)+'</b>: '+money(bs.net)+' en '+bs.c+' operaciones.','good']);
   const er=group(a,t=>t.errs).sort((x,y)=>y.n-x.n)[0];
-  if(er)out.push(['El error que más repites es <b>'+esc(er.k.toLowerCase())+'</b> ('+er.n+' veces, '+money(er.net)+').','bad']);
+  if(er&&!(costly&&costly.net<0&&costly.k===er.k))out.push(['El error que más repites es <b>'+esc(er.k.toLowerCase())+'</b> ('+er.n+' veces, '+money(er.net)+').','bad']);
   return out;}
 
+let dkind='all';
 function diarioSeg(a){return '<div class="seg">'+[['ops','Operaciones'],['stats','Conclusiones'],['rev','Revisión']].map(x=>'<button data-act="dsub" data-v="'+x[0]+'" class="'+(a===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';}
 function renderDiario(){
   const L=all();
   let body='';
   if(!L.length){body='<section class="card empty"><h2>Todavía no hay operaciones</h2><p class="muted">Anota la primera con el botón +. Con unas decenas de operaciones empezarás a ver qué emociones y qué setups te dan dinero.</p><div class="acts" style="justify-content:center"><button class="btn pri" data-act="new">Anotar operación</button><button class="btn" data-act="exload">Ver con datos de ejemplo</button></div></section>';}
   else if(dsub==='ops'){
+    const pn=L.filter(isPend);
     const days={};L.forEach(t=>{(days[t.date]=days[t.date]||[]).push(t);});
-    body=Object.keys(days).sort().reverse().map(d=>{const a=agg(days[d]);return '<div class="day"><b>'+niceDate(d)+'</b><span class="'+cls(a.net)+'">'+(a.c?money(a.net):'')+'</span></div>'+days[d].map(tradeRow).join('');}).join('');
+    body=(pn.length?'<section class="card hl"><h3>Por completar ('+pn.length+')</h3><p class="small muted" style="margin:0 0 10px">Lo mejor es hacerlo por la tarde, con calma: qué viste y cómo te sentías antes y después.</p><button class="btn pri" data-act="edit" data-id="'+pn[pn.length-1].id+'">Completar la más antigua</button></section>':'')+
+     Object.keys(days).sort().reverse().map(d=>{const a=agg(days[d]);return '<div class="day"><b>'+niceDate(d)+'</b><span class="'+cls(a.net)+'">'+(a.c?money(a.net):'')+'</span></div>'+days[d].map(tradeRow).join('');}).join('');
   }else{
-    const a=agg(L),ins=insights(L),cl=closed(L);
-    body='<section class="card"><h3>Resumen</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Ganadoras',a.win==null?'—':Math.round(a.win)+' %')+stat('Resultado',money(a.net),cls(a.net))+'</div><div class="stats" style="margin-top:10px">'+stat('Media por op.',a.avg==null?'—':money(a.avg),cls(a.avg))+stat('R medio',a.avgR==null?'—':a.avgR.toFixed(2).replace('.',','))+stat('Factor beneficio',a.pf==null?'—':a.pf.toFixed(2).replace('.',','))+'</div></section>'+
+    const Lk=dkind==='all'?L:L.filter(t=>t.kind===dkind);
+    const kseg='<div class="seg">'+[['all','Todo']].concat(OP_TIPOS).map(x=>'<button data-act="dkind" data-v="'+x[0]+'" class="'+(dkind===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+    if(!Lk.length){body=kseg+'<section class="card empty"><h2>Sin operaciones de este tipo</h2><p class="muted" style="margin:0">Las operaciones antiguas no tienen tipo. Las nuevas lo llevan siempre.</p></section>';}
+    else{
+    const a=agg(Lk),ins=insights(Lk),cl=closed(Lk);
+    body=kseg+'<section class="card"><h3>Resumen</h3><div class="stats">'+stat('Operaciones',a.n)+stat('Ganadoras',a.win==null?'—':Math.round(a.win)+' %')+stat('Resultado',money(a.net),cls(a.net))+'</div><div class="stats" style="margin-top:10px">'+stat('Media por op.',a.avg==null?'—':money(a.avg),cls(a.avg))+stat('R medio',a.avgR==null?'—':a.avgR.toFixed(2).replace('.',','))+stat('Factor beneficio',a.pf==null?'—':a.pf.toFixed(2).replace('.',','))+'</div></section>'+
      '<section class="card"><h3>Lo que dicen tus datos</h3>'+(ins.length?ins.map(i=>'<div class="insight '+i[1]+'">'+i[0]+'</div>').join(''):'<p class="muted" style="margin:0">Hacen falta al menos 3 operaciones cerradas por emoción o setup para ver patrones.</p>')+'</section>'+
+     statSection('Proceso y resultado',group(cl.filter(t=>t.rules),t=>(t.rules==='si'?'Seguiste las reglas · ':'Rompiste reglas · ')+(t.res>0?'ganaste':t.res<0?'perdiste':'break even')),'Perder siguiendo las reglas es normal. Ganar rompiéndolas es el peligro: refuerza malos hábitos.')+
      statSection('Cumplir reglas',group(cl.filter(t=>t.rules),t=>'Reglas: '+RULES[t.rules]))+
-     statSection('Emoción antes de entrar',group(cl,t=>t.pre))+
-     statSection('Emoción durante la operación',group(cl,t=>t.dur))+
-     statSection('Setup',group(cl,t=>t.setup))+
      statSection('Errores',group(cl.filter(t=>t.errs&&t.errs.length),t=>t.errs))+
+     statSection('Emoción antes de entrar',group(cl,t=>t.pre))+
+     statSection('Emoción durante la operación',group(cl,t=>durs(t)))+
+     statSection('Setup',group(cl,t=>t.setup))+
+     statSection('Riesgo por operación',group(cl.filter(t=>t.risk>0),t=>plain(t.risk)),'Mira si las operaciones de más riesgo acaban peor: suele ir ligado a nervios y a querer recuperar.')+
+     statSection('RR planeado',group(cl.filter(t=>t.rr>0),t=>rrTxt(t.rr)))+
      reentrada(cl)+
      statSection('Día de la semana',group(cl,t=>DOW[dowOf(t.date)]))+
-     statSection('Hora de entrada (Nueva York)',group(cl,t=>{const p=parts(t.ts,TZ_NY);return pad(p.h)+':'+(p.mi<30?'00':'30');}),'Las filas atenuadas tienen menos de 5 operaciones: con tan pocas es ruido. Cuando tengas decenas, serán fiables.');
+     statSection('Hora de entrada (Nueva York)',group(cl,t=>{const p=parts(t.ts,TZ_NY);return pad(p.h)+':'+(p.mi<30?'00':'30');}),'Las filas atenuadas tienen menos de 5 operaciones: con tan pocas es ruido. Cuando tengas decenas, serán fiables.')+
+     (dkind==='all'?statSection('Tipo de operación',group(cl.filter(t=>t.kind),t=>OP_TIPO_N[t.kind])):'');
+    }
   }
   $('#view').innerHTML='<div class="wrap">'+header('Registro','Diario')+'<div class="stack">'+exBanner()+diarioSeg(dsub)+'<div class="acts"><button class="btn" data-tv="import">Importar de Tradovate</button></div>'+body+'</div></div>';
 }
@@ -426,41 +463,68 @@ setInterval(tick,1000);
 
 /* ============ hoja de anotación ============ */
 let F=null;
-function blank(){const n=Date.now();return{id:null,side:'',state:null,amt:'',r:'',setup:[],pre:'',dur:'',post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:dateOf(n),time:hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
-function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',setup:(t.setup||[]).slice(),pre:t.pre||'',dur:t.dur||'',post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
+function blank(){const n=Date.now();return{id:null,side:'',state:null,amt:'',r:'',risk:S.cfg.lastRisk||'',rr:S.cfg.lastRR||'',rrOther:false,kind:S.cfg.lastKind||'',v:1,mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:dateOf(n),time:hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
+function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,kind:t.kind||'',v:t.v||0,mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
 function openSheet(t){F=t?fromTrade(t):blank();renderSheet();$('#sheetWrap').hidden=false;document.body.classList.add('noscroll');}
 function closeSheet(){F=null;$('#sheetWrap').hidden=true;document.body.classList.remove('noscroll');}
 const chip=(g,v,on,tone)=>'<button type="button" class="chip '+(tone||'')+(on?' on':'')+'" data-f="'+g+':'+esc(v)+'" aria-pressed="'+(on?'true':'false')+'">'+esc(v)+'</button>';
 function renderSheet(){
-  const prev=$('.sh-body'),sc=prev?prev.scrollTop:0,setups=SETUPS.concat(S.cfg.customSetups.filter(x=>!SETUPS.includes(x)),F.setup.filter(x=>!SETUPS.includes(x)&&!S.cfg.customSetups.includes(x)));
+  const prev=$('.sh-body'),sc=prev?prev.scrollTop:0,full=F.mode==='full';
+  const setups=SETUPS.concat(S.cfg.customSetups.filter(x=>!SETUPS.includes(x)),F.setup.filter(x=>!SETUPS.includes(x)&&!S.cfg.customSetups.includes(x)));
   const emoRow=(k,l)=>'<div class="emo"><span>'+l+'</span><div class="chips">'+EMOS.map(e=>chip(k,e[0],F[k]===e[0],e[1])).join('')+'</div></div>';
-  $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+(F.imp?'Completar operación'+(TVQ.length?' · quedan '+TVQ.length:''):(F.id?'Editar operación':'Anotar operación'))+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
+  const recent=[...new Set(all().filter(t=>t.risk>0).map(t=>t.risk))].slice(0,3);
+  const rrCustom=F.rrOther||(F.rr!==''&&!RRS.includes(num(F.rr)));
+  const accs=accData().list;
+  const accSel='<label class="field">Cuenta<select id="fAcc" style="min-height:44px;background:var(--page2);border:1px solid var(--line);border-radius:10px;padding:8px 12px"><option value="">—</option>'+accs.map(a=>'<option value="'+esc(a.id)+'"'+(a.id===F.acc?' selected':'')+'>'+esc(a.plan)+' · '+((ACC_ST[a.st]||{}).n||'')+'</option>').join('')+'</select></label>';
+  const showAccInKind=F.kind&&F.kind!=='bt'&&accs.length;
+  const title=F.imp?'Completar operación'+(TVQ.length?' · quedan '+TVQ.length:''):(F.id?(F.pend?'Completar operación':'Editar operación'):'Anotar operación');
+  const kick=t=>'<div class="lbl" style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mint)">'+t+'</div>';
+  $('#sheetIn').innerHTML='<div class="sh-head"><h2 style="margin:0">'+title+'</h2><button class="btn sm" data-f="close" aria-label="Cerrar">Cerrar</button></div><div class="sh-body">'+(F.info?'<div class="insight">'+F.info+'</div>':'')+
+   kick('Al cerrar la operación')+
    '<div><div class="lbl">Dirección</div><div class="big2">'+chip('side','Compra',F.side==='long')+chip('side','Venta',F.side==='short')+'</div></div>'+
    '<div><div class="lbl">Resultado</div><div class="chips">'+[['win','Ganada','good'],['loss','Perdida','bad'],['be','Break even',''],['open','Aún abierta','']].map(x=>'<button type="button" class="chip '+x[2]+(F.state===x[0]?' on':'')+'" data-f="state:'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'+
-   (F.state==='win'||F.state==='loss'?'<div class="fgrid" style="margin-top:10px"><label class="field">Importe ($)<input id="fAmt" inputmode="decimal" value="'+esc(F.amt)+'" placeholder="300"></label><label class="field">R (opcional)<input id="fR" inputmode="decimal" value="'+esc(F.r)+'" placeholder="1,5"></label></div>':'')+'</div>'+
-   '<div><div class="lbl">¿Qué viste?</div><div class="chips">'+setups.map(s=>chip('setup',s,F.setup.includes(s))).join('')+'</div><div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="fCustom" placeholder="Otro elemento" style="flex:1"><button type="button" class="btn sm" data-f="addsetup">Añadir</button></div></div>'+
-   '<div><div class="lbl">Cómo te sentías</div>'+emoRow('pre','Antes')+emoRow('dur','Durante')+emoRow('post','Después')+'</div>'+
+   (F.state==='win'||F.state==='loss'?'<div class="fgrid" style="margin-top:10px"><label class="field">Importe ($)<input id="fAmt" inputmode="decimal" value="'+esc(F.amt)+'" placeholder="300"></label></div>':'')+'</div>'+
+   '<div><div class="lbl">Riesgo ($) · lo que perdías si saltaba el stop</div><div class="row" style="flex-wrap:nowrap;gap:8px"><input id="fRisk" inputmode="decimal" value="'+esc(F.risk)+'" placeholder="500" style="flex:1;min-width:0">'+recent.map(v=>'<button type="button" class="chip'+(num(F.risk)===v?' on':'')+'" data-f="risk:'+v+'">'+plain(v)+'</button>').join('')+'</div></div>'+
+   '<div><div class="lbl">RR planeado</div><div class="chips">'+RRS.map(v=>'<button type="button" class="chip'+(!rrCustom&&num(F.rr)===v?' on':'')+'" data-f="rr:'+v+'">'+rrTxt(v)+'</button>').join('')+'<button type="button" class="chip'+(rrCustom?' on':'')+'" data-f="rr:other">Otro</button></div>'+(rrCustom?'<div class="fgrid" style="margin-top:10px"><label class="field">RR (por ejemplo 1,8)<input id="fRR" inputmode="decimal" value="'+esc(F.rr)+'" placeholder="1,8"></label></div>':'')+'</div>'+
+   '<div><div class="lbl">Tipo</div><div class="chips">'+OP_TIPOS.map(k=>'<button type="button" class="chip'+(F.kind===k[0]?' on':'')+'" data-f="kind:'+k[0]+'">'+k[1]+'</button>').join('')+'</div>'+(showAccInKind?'<div style="margin-top:10px">'+accSel+'</div>':'')+'</div>'+
+   '<div><div class="lbl">¿Cómo te sentías durante la operación? <span class="muted small">(puedes marcar varias)</span></div><div class="chips">'+EMOS.map(e=>chip('dur',e[0],F.dur.includes(e[0]),e[1])).join('')+'</div></div>'+
    '<div><div class="lbl">¿Seguiste tus reglas?</div><div class="chips">'+Object.keys(RULES).map(k=>'<button type="button" class="chip '+(k==='si'?'good':k==='no'?'bad':'')+(F.rules===k?' on':'')+'" data-f="rules:'+k+'">'+RULES[k]+'</button>').join('')+'</div>'+
    (F.rules==='part'||F.rules==='no'?'<div class="lbl" style="margin-top:12px">¿Qué falló?</div><div class="chips">'+ERRS.map(e=>chip('err',e,F.errs.includes(e),'bad')).join('')+'</div>':'')+'</div>'+
-   '<div><div class="lbl">Nota (opcional)</div><input id="fNote" value="'+esc(F.note)+'" placeholder="Una línea"></div>'+
-   '<div><button type="button" class="btn sm" data-f="more">'+(F.more?'Ocultar detalles':'Instrumento, fecha y hora')+'</button>'+(F.more?'<div class="fgrid" style="margin-top:10px"><label class="field">Instrumento<input id="fInstr" value="'+esc(F.instr)+'"></label><label class="field">Fecha<input id="fDate" type="date" value="'+esc(F.date)+'"></label><label class="field">Hora<input id="fTime" type="time" value="'+esc(F.time)+'"></label><label class="field">Cuenta<select id="fAcc" style="min-height:44px;background:var(--page2);border:1px solid var(--line);border-radius:10px;padding:8px 12px"><option value="">—</option>'+accData().list.map(a=>'<option value="'+esc(a.id)+'"'+(a.id===F.acc?' selected':'')+'>'+esc(a.plan)+' · '+((ACC_ST[a.st]||{}).n||'')+'</option>').join('')+'</select></label></div>':'')+'</div>'+
+   (full?
+    kick('Por la tarde, con calma')+
+    '<div><div class="lbl">¿Qué viste?</div><div class="chips">'+setups.map(s=>chip('setup',s,F.setup.includes(s))).join('')+'</div><div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="fCustom" placeholder="Otro elemento" style="flex:1"><button type="button" class="btn sm" data-f="addsetup">Añadir</button></div></div>'+
+    '<div><div class="lbl">Cómo te sentías</div>'+emoRow('pre','Antes')+emoRow('post','Después')+'</div>'+
+    '<div><div class="lbl">Nota (opcional)</div><input id="fNote" value="'+esc(F.note)+'" placeholder="Una línea"></div>'+
+    '<div><button type="button" class="btn sm" data-f="more">'+(F.more?'Ocultar detalles':'Instrumento, fecha y hora')+'</button>'+(F.more?'<div class="fgrid" style="margin-top:10px"><label class="field">Instrumento<input id="fInstr" value="'+esc(F.instr)+'"></label><label class="field">Fecha<input id="fDate" type="date" value="'+esc(F.date)+'"></label><label class="field">Hora<input id="fTime" type="time" value="'+esc(F.time)+'"></label>'+(showAccInKind?'':accSel)+'</div>':'')+'</div>'
+   :'<div><button type="button" class="btn" data-f="full" style="width:100%">Completar ahora: qué viste y emociones antes y después</button><p class="small muted" style="margin:8px 0 0">Si lo dejas para la tarde, queda «por completar» en Hoy.</p></div>')+
    '</div><div class="sh-foot">'+(F.id?'<button type="button" class="btn danger" data-f="del">'+(F.del?'Confirmar borrado':'Borrar')+'</button>':'')+'<button type="button" class="btn pri" data-f="save">Guardar operación</button></div>';
   const nb=$('.sh-body');if(nb)nb.scrollTop=sc;
 }
 function saveForm(){
   if(!F.side){toast('Elige compra o venta');return;}
-  let res=null,r=null;const a=num(F.amt),rr=num(F.r);
-  if(F.state==='win'||F.state==='loss'){if(!(a>0)){toast('Pon el importe del resultado');return;}const sg=F.state==='win'?1:-1;res=sg*a;if(rr!==null&&rr!==0)r=sg*Math.abs(rr);}
-  else if(F.state==='be'){res=0;r=0;}
+  if(!F.state){toast('Elige el resultado (o «Aún abierta»)');return;}
+  let res=null,r=null;const a=num(F.amt),risk=num(F.risk),rr=num(F.rr);
+  if(F.state==='win'||F.state==='loss'){if(!(a>0)){toast('Pon el importe del resultado');return;}res=(F.state==='win'?1:-1)*a;}
+  else if(F.state==='be')res=0;
+  const strict=!F.id||F.v===1;      // las operaciones antiguas no obligan a rellenar lo nuevo
+  if(strict){
+    if(!(risk>0)){toast('Pon el riesgo en $: sin él no podemos ver cuándo arriesgas de más');return;}
+    if(!(rr>0)){toast('Elige el RR planeado');return;}
+    if(!F.kind){toast('Elige el tipo: backtesting, evaluación o fondeada');return;}
+  }
+  if(F.state==='open')r=null;else if(risk>0)r=Math.round(100*res/risk)/100;else r=num(F.r);
   let ts=Date.parse(F.date+'T'+(F.time||'12:00')+':00');if(!isFinite(ts))ts=Date.now();
   const old=F.id&&S.trades[F.id]?S.trades[F.id]:{};
   if(old.ts&&old.date===F.date&&old.time===F.time)ts=old.ts;
-  const t=Object.assign({},old,{id:F.id||uid(),ts,date:F.date||dateOf(ts),time:F.time||hm(ts),side:F.side,acc:F.acc,instr:F.instr.trim()||'NQ',setup:F.setup,res,r,pre:F.pre,dur:F.dur,post:F.post,rules:F.rules,errs:(F.rules==='part'||F.rules==='no')?F.errs:[],note:F.note.trim()});
+  const t=Object.assign({},old,{id:F.id||uid(),ts,date:F.date||dateOf(ts),time:F.time||hm(ts),side:F.side,acc:F.acc,instr:F.instr.trim()||'NQ',setup:F.setup,res,r,risk:risk>0?risk:null,rr:rr>0?rr:null,kind:F.kind,pre:F.pre,dur:F.dur,post:F.post,rules:F.rules,errs:(F.rules==='part'||F.rules==='no')?F.errs:[],note:F.note.trim()});
+  if(strict)t.v=1;
   if(F.ex)t.ex=true;
-  S.cfg.instr=t.instr;putTrade(t);saveCfg();closeSheet();softRender();toast('Operación guardada');
+  if(risk>0)S.cfg.lastRisk=String(risk);if(rr>0)S.cfg.lastRR=String(rr);if(F.kind)S.cfg.lastKind=F.kind;
+  S.cfg.instr=t.instr;putTrade(t);saveCfg();closeSheet();softRender();
+  toast(isPend(t)?'Guardada · queda por completar (qué viste y emociones)':'Operación guardada');
   if(TVQ.length){const nid=TVQ.shift();if(S.trades[nid])setTimeout(()=>openSheet(S.trades[nid]),300);}
 }
-document.addEventListener('input',e=>{if(!F)return;const m={fAmt:'amt',fR:'r',fNote:'note',fInstr:'instr',fDate:'date',fTime:'time',fAcc:'acc'}[e.target.id];if(m)F[m]=e.target.value;});
+document.addEventListener('input',e=>{if(!F)return;const m={fAmt:'amt',fR:'r',fRisk:'risk',fRR:'rr',fNote:'note',fInstr:'instr',fDate:'date',fTime:'time',fAcc:'acc'}[e.target.id];if(m)F[m]=e.target.value;});
 document.addEventListener('click',e=>{
   const f=e.target.closest('[data-f]');
   if(f&&F){
@@ -473,7 +537,12 @@ document.addEventListener('click',e=>{
     else if(k==='state'){F.state=v;}
     else if(k==='setup'){F.setup=F.setup.includes(v)?F.setup.filter(x=>x!==v):F.setup.concat(v);}
     else if(k==='err'){F.errs=F.errs.includes(v)?F.errs.filter(x=>x!==v):F.errs.concat(v);}
-    else if(k==='pre'||k==='dur'||k==='post'){F[k]=F[k]===v?'':v;}
+    else if(k==='pre'||k==='post'){F[k]=F[k]===v?'':v;}
+    else if(k==='dur'){F.dur=F.dur.includes(v)?F.dur.filter(x=>x!==v):F.dur.concat(v);}
+    else if(k==='risk'){F.risk=String(v);}
+    else if(k==='rr'){if(v==='other'){F.rrOther=true;F.rr='';}else{F.rrOther=false;F.rr=v;}}
+    else if(k==='kind'){F.kind=F.kind===v?'':v;}
+    else if(k==='full'){F.mode='full';}
     else if(k==='rules'){F.rules=F.rules===v?'':v;}
     else if(k==='addsetup'){const inp=$('#fCustom'),x=inp?inp.value.trim():'';if(x){if(!S.cfg.customSetups.includes(x)&&!SETUPS.includes(x)){S.cfg.customSetups.push(x);saveCfg();}if(!F.setup.includes(x))F.setup.push(x);}}
     renderSheet();return;
@@ -483,6 +552,7 @@ document.addEventListener('click',e=>{
   const act=a.dataset.act,v=a.dataset.v;
   if(act==='new')openSheet();
   else if(act==='edit'){const t=S.trades[a.dataset.id];if(t)openSheet(t);}
+  else if(act==='dkind'){dkind=v;render();}
   else if(act==='dsub'){if(v==='rev'){location.hash='#revision';}else{dsub=v;if(location.hash!=='#diario')location.hash='#diario';else render();}}
   else if(act==='wk'){wkOff=Math.min(0,wkOff+(+v));render();}
   else if(act==='revdone'){const r=S.cfg.reviews[a.dataset.mon]||(S.cfg.reviews[a.dataset.mon]={});r.done=!r.done;saveCfg();render();toast(r.done?'Revisión hecha':'Revisión reabierta');}

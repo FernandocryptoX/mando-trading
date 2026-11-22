@@ -104,7 +104,10 @@ function tvAnalyze(files){
 const tvId=t=>'tv-'+(t.oid||t.ts);
 function tvToTrade(t,acc){
   const ts=t.ts,date=dateOf(ts);
-  return{id:tvId(t),ts,endTs:t.endTs||null,date,time:hm(ts),side:t.side,instr:tvRoot(t.sym),setup:[],res:t.res,r:null,pre:'',dur:'',post:'',rules:'',errs:[],note:'',acc:acc||'',
+  const ac=acc&&typeof accData==='function'?accData().list.find(x=>x.id===acc):null,kind=ac?(ac.st==='funded'?'fund':'eval'):'';
+  let risk=null,rr=null;
+  if(t.sl!=null&&t.pv&&t.qty&&t.entry!=null){const d=Math.abs(t.entry-t.sl);if(d>0){risk=Math.round(d*t.pv*t.qty);if(t.tp!=null)rr=Math.round(Math.abs(t.tp-t.entry)/d*100)/100;}}
+  return{v:1,kind,risk,rr,id:tvId(t),ts,endTs:t.endTs||null,date,time:hm(ts),side:t.side,instr:tvRoot(t.sym),setup:[],res:t.res,r:null,pre:'',dur:'',post:'',rules:'',errs:[],note:'',acc:acc||'',
     imp:true,qty:t.qty,entry:t.entry,exit:t.exit,pts:t.pts,how:t.how,tp:t.tp,sl:t.sl,left:t.left,secs:t.secs};
 }
 const tvFmtPx=n=>n===null||n===undefined?'—':n.toLocaleString('es-ES',{maximumFractionDigits:2});
