@@ -198,7 +198,7 @@ function renderBanca(){
    '<div class="stats" style="margin-top:10px">'+stat('Cuentas',S0.n)+stat('Activas',S0.eval+S0.funded)+stat('Pasaron a funded',S0.passed+' de '+S0.n)+'</div></section>'+
    accObjectivesCard()+'<section class="card"><h3>Cobrado este mes</h3><b style="font-size:22px">'+plain(cobradoMes)+'</b><p class="small muted" style="margin:4px 0 0">Lo que has cobrado de las prop firms este mes.</p></section>'+
    chartsBanca(L)+(firmRows?'<section class="card"><h3>Retorno por prop firm</h3>'+firmRows+'<p class="small muted" style="margin:10px 0 0">Neto = cobros − lo pagado − otros gastos. Una cuenta perdida o cerrada sigue contando.</p></section>':'')+
-   '<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+
+   (dupGroups().length?'<section class="card hl"><h3>Cuentas repetidas</h3><p class="small" style="margin:0 0 10px">Hay cuentas que parecen la misma, por ejemplo creadas en dos dispositivos. Las reviso y las uno sin perder operaciones.</p><button class="btn pri" data-bk="dedupe|x">Revisar y unir</button></section>':'')+'<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+
    (L.length?L.map(card).join(''):'<section class="card empty"><h2>Todavía no hay cuentas</h2><p class="muted">Anota cada cuenta de prop firm que compres para saber si el negocio sale a cuenta.</p></section>')+
    '</div></div>';
 }
@@ -223,6 +223,7 @@ function accForm(a){
 function accAct(s){
   const p=s.split('|'),k=p[0],acc=accData(),t=p[1]&&acc.list.find(x=>x.id===p[1]);
   if(k==='new'){accForm();return;}
+  if(k==='dedupe'){dedupeDialog();return;}
   if(k==='sdedit'){const tr=S.trades[p[1]],ac=tr&&acc.list.find(x=>x.id===tr.acc);if(ac)sdDialog(ac,tr);return;}
   if(!t)return;
   const today=dateOf(Date.now());
@@ -317,4 +318,47 @@ function ordersDialog(o){
     plan.map(x=>'<div class="srow"><span class="sn">'+esc(x.od.plan||'')+'</span><span class="sm">'+(x.a?'actualizo':'creo')+(x.od.st==='lost'?' · perdida':'')+((x.od.days||[]).length?' · '+x.od.days.length+' días':'')+'</span><b>'+f2(+x.od.paid||0)+'</b></div>').join('')+
     '<p style="margin:12px 0 0"><b>Gastado en estos pedidos: '+f2(tot)+'</b></p>',
     [{label:'Cancelar'},{label:'Cargar',primary:true,run:()=>{const r=ordersApply(o);render();toast('Hecho: '+r.cr+' creadas, '+r.up+' actualizadas, '+r.dy+' días · gastado '+plain(accStats(accData().list).spent));}}]);
+}
+
+/* ---------- cuentas repetidas (por ejemplo, la misma cuenta creada en dos dispositivos con ids distintos) ---------- */
+const accBase=a=>String(a.plan||'').toLowerCase().split('·')[0].replace(/\s+/g,' ').trim();
+const accNT=a=>Object.values(S.trades).filter(t=>t.acc===a.id).length;
+const accRank=a=>[a.order?1:0,accNT(a),(a.hist||[]).length+(a.payouts||[]).length+(a.fees||[]).length,-accTs(a.date)];
+function accPick(g){return g.slice().sort((x,y)=>{const a=accRank(x),b=accRank(y);for(let i=0;i<a.length;i++){if(a[i]!==b[i])return b[i]-a[i];}return 0;})[0];}
+function dupGroups(){
+  const L=accData().list,out=[],gone=new Set();
+  const byO={};L.forEach(a=>{if(a.order)(byO[a.order]=byO[a.order]||[]).push(a);});
+  Object.values(byO).forEach(g=>{if(g.length>1){const k=accPick(g);out.push({keep:k,dups:g.filter(x=>x!==k)});g.forEach(x=>{if(x!==k)gone.add(x.id);});}});
+  const byK={};L.filter(a=>!gone.has(a.id)).forEach(a=>{const k=String(a.firm||'').toLowerCase().trim()+'|'+accBase(a);(byK[k]=byK[k]||[]).push(a);});
+  Object.values(byK).forEach(m=>{
+    const ord=m.filter(a=>a.order),none=m.filter(a=>!a.order);
+    if(!none.length)return;
+    if(!ord.length){if(none.length>1){const k=accPick(none);out.push({keep:k,dups:none.filter(x=>x!==k)});}return;}
+    const k=ord.length===1?ord[0]:accPick(ord);
+    const mine=out.find(g=>g.keep===k);
+    if(mine)mine.dups=mine.dups.concat(none);else out.push({keep:k,dups:none.slice()});
+  });
+  return out.filter(g=>g.dups.length);
+}
+function accMergeInto(keep,dup){
+  ['plat','size','price','disc','paid','coupon','pay','order','note','mkt','dd','target','dayLim','dayPct','minDays','profDay','cons','maxRisk','firstPay','payEvery','split','newsMin','norms'].forEach(k=>{
+    if((keep[k]==null||keep[k]===''||keep[k]===0)&&dup[k]!=null&&dup[k]!==''&&dup[k]!==0)keep[k]=dup[k];});
+  const sig=h=>h.ts+'|'+h.st+'|'+(h.amt||'')+'|'+(h.note||'');
+  ['hist','payouts','fees'].forEach(k=>{keep[k]=keep[k]||[];const s=new Set(keep[k].map(sig));(dup[k]||[]).forEach(h=>{if(!s.has(sig(h))){keep[k].push(h);s.add(sig(h));}});});
+  if(keep.st!=='lost'&&dup.st==='lost'&&!(keep.st==='eval'||keep.st==='funded'))keep.st='lost';
+  Object.values(S.trades).filter(t=>t.acc===dup.id).forEach(t=>{
+    const twin=Object.values(S.trades).find(x=>x!==t&&x.acc===keep.id&&x.date===t.date&&x.res===t.res&&(x.sd||t.sd));
+    if(twin){delTrade(t.id);}else{t.acc=keep.id;putTrade(t);}
+  });
+  const acc=accData();acc.del=acc.del||{};acc.del[dup.id]=Date.now();acc.list=acc.list.filter(x=>x.id!==dup.id);
+}
+function dedupeDialog(){
+  const G=dupGroups();
+  if(!G.length){dialog('<h2 style="font-size:22px">Cuentas repetidas</h2><p class="small muted">No veo ninguna cuenta repetida.</p>',[{label:'Cerrar'}]);return;}
+  dialog('<h2 style="font-size:22px">Cuentas repetidas</h2><p class="small muted">Estas cuentas parecen la misma. Conservo la más completa y le paso las operaciones, los cobros y el historial de las otras. Las operaciones idénticas no se cuentan dos veces.</p>'+
+    G.map(g=>'<div class="srow"><span class="sn"><b>'+esc(g.keep.plan)+'</b></span><span class="sm">absorbe '+g.dups.length+': '+g.dups.map(d=>esc(d.plan)).join(', ')+'</span><b></b></div>').join(''),
+    [{label:'Cancelar'},{label:'Unir',primary:true,run:()=>{
+      accBackupNow('antes de unir cuentas repetidas');
+      const n=dupGroups().reduce((s,g)=>{g.dups.forEach(d=>accMergeInto(g.keep,d));return s+g.dups.length;},0);
+      saveCfg();render();toast('Unidas '+n+' cuentas repetidas');}}]);
 }
