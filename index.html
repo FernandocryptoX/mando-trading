@@ -404,7 +404,7 @@ function tradeRow(t){
   if(t.ex)tags.push('<span class="tag">ejemplo</span>');
   if(t.imp)tags.push('<span class="tag">Tradovate</span>');
   if(t.left>0)tags.push('<span class="tag neu">dejaste '+plain(t.left)+'</span>');
-  return '<button class="tr" data-act="edit" data-id="'+t.id+'"><span class="dir '+(t.side==='short'?'s':'')+'">'+(t.side==='short'?'V':'C')+'</span><span class="mid"><div class="t1">'+(t.kind==='bt'?dShort(t.date)+' ':'')+esc(t.time||'')+' · '+esc(sd)+'</div><div class="t2">'+tags.join('')+'</div></span>'+
+  return '<button class="tr" data-act="edit" data-id="'+t.id+'"><span class="dir '+(t.side==='short'?'s':'')+'">'+(t.side==='short'?'V':'C')+'</span><span class="mid"><div class="t1">'+(t.kind==='bt'?dShort(t.date)+' ':'')+esc(t.time||'')+(t.kind==='bt'&&t.tz==='NY'?' NY':'')+' · '+esc(sd)+'</div><div class="t2">'+tags.join('')+'</div></span>'+
    '<span class="amt '+(t.res==null?'muted':cls(t.res))+'">'+(t.res==null?'abierta':money(t.res))+(typeof t.r==='number'?'<div class="small muted">'+(t.r>0?'+':t.r<0?'−':'')+Math.abs(t.r).toLocaleString('es-ES')+' R</div>':'')+'</span></button>';}
 
 function statSection(title,rows,note){
@@ -561,8 +561,8 @@ setInterval(tick,1000);
 
 /* ============ hoja de anotación ============ */
 let F=null;
-function blank(kind){const n=Date.now(),k=kind||S.cfg.lastKind||'',d=(S.cfg.last||{})[k]||{},bt=k==='bt';return{id:null,side:'',state:null,amt:'',r:'',risk:d.risk||S.cfg.lastRisk||'',rr:d.rr||S.cfg.lastRR||'',rrOther:false,amtAuto:true,kind:k,v:3,img:{},htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',date:bt?(S.cfg.lastBtDate||''):dateOf(n),time:bt?(S.cfg.lastBtTime||''):hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
-function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,amtAuto:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),img:Object.assign({},t.img||{}),kl:t.kl||'',ifvg:t.ifvg||'',conf:(t.conf||[]).slice(),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
+function blank(kind){const n=Date.now(),k=kind||S.cfg.lastKind||'',d=(S.cfg.last||{})[k]||{},bt=k==='bt';return{id:null,side:'',state:null,amt:'',r:'',risk:d.risk||S.cfg.lastRisk||'',rr:d.rr||S.cfg.lastRR||'',rrOther:false,amtAuto:true,kind:k,v:3,img:{},htf:'',ltf:'',chk:{},kl:'',ifvg:'',conf:[],mode:'quick',pend:false,setup:[],pre:'',dur:[],post:'',rules:'',errs:[],note:'',instr:S.cfg.instr||'NQ',tz:bt?(S.cfg.lastTz||'NY'):'ES',date:bt?(S.cfg.lastBtDate||''):dateOf(n),time:bt?(S.cfg.lastBtTime||''):hm(n),acc:(accActiveList()[0]||{}).id||'',more:false,del:false,ex:false};}
+function fromTrade(t){return{id:t.id,side:t.side,state:t.res==null?'open':t.res>0?'win':t.res<0?'loss':'be',amt:t.res?String(Math.abs(t.res)):'',r:typeof t.r==='number'&&t.r?String(Math.abs(t.r)):'',risk:t.risk?String(t.risk):'',rr:t.rr?String(t.rr):'',rrOther:false,amtAuto:false,kind:t.kind||'',v:t.v||0,htf:t.htf||'',ltf:t.ltf||'',chk:Object.assign({},t.chk||{}),img:Object.assign({},t.img||{}),kl:t.kl||'',ifvg:t.ifvg||'',conf:(t.conf||[]).slice(),mode:'full',pend:isPend(t),setup:(t.setup||[]).slice(),pre:t.pre||'',dur:durs(t).slice(),post:t.post||'',rules:t.rules||'',errs:(t.errs||[]).slice(),note:t.note||'',instr:t.instr||'NQ',tz:t.tz||'ES',date:t.date,time:t.time||'',acc:t.acc||'',imp:!!t.imp,info:t.imp?tvSummary(t):'',more:false,del:false,ex:!!t.ex};}
 function openSheet(t,kind){F=t?fromTrade(t):blank(kind);renderSheet();$('#sheetWrap').hidden=false;document.body.classList.add('noscroll');}
 function closeSheet(){F=null;$('#sheetWrap').hidden=true;document.body.classList.remove('noscroll');}
 const chip=(g,v,on,tone)=>'<button type="button" class="chip '+(tone||'')+(on?' on':'')+'" data-f="'+g+':'+esc(v)+'" aria-pressed="'+(on?'true':'false')+'">'+esc(v)+'</button>';
@@ -573,7 +573,7 @@ function renderSheet(){
   const bt=F.kind==='bt';
   const recent=[...new Set(all().filter(t=>t.risk>0&&(bt?t.kind==='bt':t.kind!=='bt')).map(t=>t.risk))].slice(0,3);
   const dtInputs=bt?'':'<label class="field">Fecha<input id="fDate" type="date" value="'+esc(F.date)+'"></label><label class="field">Hora<input id="fTime" type="time" value="'+esc(F.time)+'"></label>';
-  const btDay=bt?'<div><div class="lbl">Día simulado y hora <span class="muted small">(los del gráfico que estás repasando)</span></div><div class="fgrid"><label class="field">Día<input id="fDate" type="date" value="'+esc(F.date)+'"></label><label class="field">Hora<input id="fTime" type="time" value="'+esc(F.time)+'"></label></div><div class="chips"><button type="button" class="chip" data-f="btday:next">Día siguiente</button>'+(S.cfg.lastBtDate&&F.date!==S.cfg.lastBtDate?'<button type="button" class="chip" data-f="btday:same">Volver al día anterior</button>':'')+'</div></div>':'';
+  const btDay=bt?'<div><div class="lbl">Día simulado y hora <span class="muted small">(los del gráfico que estás repasando)</span></div><div class="fgrid"><label class="field">Día<input id="fDate" type="date" value="'+esc(F.date)+'"></label><label class="field">Hora<input id="fTime" type="time" value="'+esc(F.time)+'"></label></div><div class="chips"><button type="button" class="chip" data-f="btday:next">Día siguiente</button>'+(S.cfg.lastBtDate&&F.date!==S.cfg.lastBtDate?'<button type="button" class="chip" data-f="btday:same">Volver al día anterior</button>':'')+'</div><div class="lbl" style="margin-top:10px">Hora del gráfico</div><div class="chips"><button type="button" class="chip'+(F.tz==='NY'?' on':'')+'" data-f="tz:NY">Nueva York</button><button type="button" class="chip'+(F.tz==='ES'?' on':'')+'" data-f="tz:ES">España</button></div></div>':'';
   const rrCustom=F.rrOther||(F.rr!==''&&!RRS.includes(num(F.rr)));
   const accs=accData().list;
   const accSel='<label class="field">Cuenta<select id="fAcc" style="min-height:44px;background:var(--page2);border:1px solid var(--line);border-radius:10px;padding:8px 12px"><option value="">—</option>'+accs.map(a=>'<option value="'+esc(a.id)+'"'+(a.id===F.acc?' selected':'')+'>'+esc(a.plan)+' · '+((ACC_ST[a.st]||{}).n||'')+'</option>').join('')+'</select></label>';
@@ -625,13 +625,14 @@ function saveForm(){
   }
   if(F.state==='open')r=null;else if(risk>0)r=Math.round(100*res/risk)/100;else r=num(F.r);
   let ts=Date.parse(F.date+'T'+(F.time||'12:00')+':00');if(!isFinite(ts))ts=Date.now();
+  if(F.kind==='bt'&&F.tz==='NY'&&F.date)ts=zonedToUtc(F.date,F.time||'12:00',TZ_NY);   // la hora del gráfico de backtesting es la de Nueva York
   const old=F.id&&S.trades[F.id]?S.trades[F.id]:{};
-  if(old.ts&&old.date===F.date&&old.time===F.time)ts=old.ts;
-  const t=Object.assign({},old,{id:F.id||uid(),ts,date:F.date||dateOf(ts),time:F.time||hm(ts),side:F.side,acc:F.acc,instr:F.instr.trim()||'NQ',setup:F.setup,res,r,risk:risk>0?risk:null,rr:rr>0?rr:null,kind:F.kind,img:Object.fromEntries(Object.entries(F.img||{}).filter(e=>String(e[1]).trim()).map(e=>[e[0],String(e[1]).trim()])),kl:F.kl,ifvg:F.ifvg,conf:F.conf,htf:F.htf.trim(),ltf:F.ltf.trim(),chk:F.chk,pre:F.pre,dur:F.dur,post:F.post,rules:F.rules,errs:(F.rules==='part'||F.rules==='no')?F.errs:[],note:F.note.trim()});
+  if(old.ts&&old.date===F.date&&old.time===F.time&&(old.tz||'ES')===(F.kind==='bt'?F.tz:'ES'))ts=old.ts;
+  const t=Object.assign({},old,{id:F.id||uid(),ts,date:F.date||dateOf(ts),time:F.time||hm(ts),side:F.side,acc:F.acc,instr:F.instr.trim()||'NQ',setup:F.setup,res,r,risk:risk>0?risk:null,rr:rr>0?rr:null,kind:F.kind,tz:F.kind==='bt'?F.tz:undefined,img:Object.fromEntries(Object.entries(F.img||{}).filter(e=>String(e[1]).trim()).map(e=>[e[0],String(e[1]).trim()])),kl:F.kl,ifvg:F.ifvg,conf:F.conf,htf:F.htf.trim(),ltf:F.ltf.trim(),chk:F.chk,pre:F.pre,dur:F.dur,post:F.post,rules:F.rules,errs:(F.rules==='part'||F.rules==='no')?F.errs:[],note:F.note.trim()});
   if(strict)t.v=F.v||2;
   if(F.ex)t.ex=true;
   if(!old.cr)t.cr=Date.now();
-  if(F.kind){S.cfg.last=S.cfg.last||{};const d=S.cfg.last[F.kind]=S.cfg.last[F.kind]||{};if(risk>0)d.risk=String(risk);if(rr>0)d.rr=String(rr);S.cfg.lastKind=F.kind;if(F.kind==='bt'){S.cfg.lastBtDate=F.date;S.cfg.lastBtTime=F.time;}}
+  if(F.kind){S.cfg.last=S.cfg.last||{};const d=S.cfg.last[F.kind]=S.cfg.last[F.kind]||{};if(risk>0)d.risk=String(risk);if(rr>0)d.rr=String(rr);S.cfg.lastKind=F.kind;if(F.kind==='bt'){S.cfg.lastBtDate=F.date;S.cfg.lastBtTime=F.time;S.cfg.lastTz=F.tz;}}
   if(risk>0)S.cfg.lastRisk=String(risk);if(rr>0)S.cfg.lastRR=String(rr);
   S.cfg.instr=t.instr;putTrade(t);saveCfg();if(typeof imgCleanup==='function')imgCleanup(old,t);closeSheet();softRender();
   toast(isPend(t)?'Guardada · queda por completar (análisis, checklist e imágenes)':'Operación guardada');
@@ -671,7 +672,8 @@ document.addEventListener('click',e=>{
     else if(k==='dur'){F.dur=F.dur.includes(v)?F.dur.filter(x=>x!==v):F.dur.concat(v);}
     else if(k==='risk'){F.risk=String(v);suggestAmt();}
     else if(k==='rr'){if(v==='other'){F.rrOther=true;F.rr='';}else{F.rrOther=false;F.rr=v;}suggestAmt();}
-    else if(k==='kind'){const pk=F.kind;F.kind=F.kind===v?'':v;if(!F.id&&F.kind&&F.kind!==pk){const d=(S.cfg.last||{})[F.kind]||{};if(d.risk)F.risk=d.risk;if(d.rr)F.rr=d.rr;if(F.kind==='bt'){F.date=S.cfg.lastBtDate||'';F.time=S.cfg.lastBtTime||'';}else if(pk==='bt'){F.date=dateOf(Date.now());F.time=hm(Date.now());}suggestAmt();}}
+    else if(k==='kind'){const pk=F.kind;F.kind=F.kind===v?'':v;if(!F.id&&F.kind&&F.kind!==pk){const d=(S.cfg.last||{})[F.kind]||{};if(d.risk)F.risk=d.risk;if(d.rr)F.rr=d.rr;if(F.kind==='bt'){F.date=S.cfg.lastBtDate||'';F.time=S.cfg.lastBtTime||'';F.tz=S.cfg.lastTz||'NY';}else if(pk==='bt'){F.date=dateOf(Date.now());F.time=hm(Date.now());}suggestAmt();}}
+    else if(k==='tz'){F.tz=v;}
     else if(k==='btday'){if(v==='next')F.date=nextWk(F.date||dateOf(Date.now()));else if(v==='same'&&S.cfg.lastBtDate)F.date=S.cfg.lastBtDate;}
     else if(k==='full'){F.mode='full';}
     else if(k==='imgclear'){delete F.img[v];}
