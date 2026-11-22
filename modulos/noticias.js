@@ -84,7 +84,7 @@ function newsCard(){
   const ds=todayES(),inf=dayInfo(ds),L=LV[inf.lv];
   return '<section class="card lvl '+L.c+'"><div class="row"><h3 style="margin:0">Estado del día</h3><a class="small" href="#noticias" style="color:var(--yellow)">Ver semana</a></div><p style="font-size:22px;margin:8px 0 6px;font-weight:600">'+L.i+' '+L.n+'</p>'+
    (inf.reasons.length?'<ul class="lst">'+inf.reasons.map(r=>'<li>'+r+'</li>').join('')+'</ul>':'')+
-   (inf.ev.length?'<div class="lbl" style="margin-top:10px">Noticias de hoy</div><ul class="lst">'+inf.ev.map(e=>'<li>'+evLine(ds,e)+'</li>').join('')+'</ul>':'<p class="small muted" style="margin:0">'+(inf.lv==='unk'?'Aún no has cargado las noticias de esta semana.':'Sin noticias cargadas para hoy.')+'</p>')+'</section>';
+   (typeof accNewsHTML==='function'?accNewsHTML(ds):'')+(inf.ev.length?'<div class="lbl" style="margin-top:10px">Noticias de hoy</div><ul class="lst">'+inf.ev.map(e=>'<li>'+evLine(ds,e)+'</li>').join('')+'</ul>':'<p class="small muted" style="margin:0">'+(inf.lv==='unk'?'Aún no has cargado las noticias de esta semana.':'Sin noticias cargadas para hoy.')+'</p>')+'</section>';
 }
 
 /* página de la semana */
@@ -97,7 +97,7 @@ function weekDayHTML(ds){
       (w&&w.inside?'<div class="small" style="color:var(--coral)">⛔ No abras entradas de '+w.from+' a '+w.es+' (España).</div>':(w?'<div class="small muted">'+w.where+' · si operaras a esa hora, no entres de '+w.from+' a '+w.es+'</div>':''))+'</li>';
   }).join('');
   const adds=Object.keys(KINDS).map(k=>'<button class="btn sm" data-n="add|'+ds+'|'+k+'">+ '+KINDS[k].n+'</button>').join('');
-  return '<section class="card lvl '+L.c+'"><div class="row"><b>'+dayLabel(ds)+'</b><span class="tag">'+L.i+' '+L.n+'</span></div>'+(inf.reasons.length?'<p class="small muted" style="margin:8px 0 0">'+inf.reasons.join('<br>')+'</p>':'')+(rows?'<ul class="lst">'+rows+'</ul>':(hasAuto&&E.auto?'<p class="small muted" style="margin:8px 0 0">Sin noticias de impacto en el calendario automático.</p>':''))+'<div class="acts" style="margin-top:10px">'+adds+(hasAuto&&!E.auto?'<button class="btn sm" data-n="reset|'+ds+'">Volver al automático</button>':'')+'</div>'+(hasAuto&&E.auto&&rows?'<p class="small muted" style="margin:8px 0 0">Datos automáticos. Si cambias algo, este día pasa a ser manual.</p>':'')+'</section>';
+  return '<section class="card lvl '+L.c+'"><div class="row"><b>'+dayLabel(ds)+'</b><span class="tag">'+L.i+' '+L.n+'</span></div>'+(inf.reasons.length?'<p class="small muted" style="margin:8px 0 0">'+inf.reasons.join('<br>')+'</p>':'')+(rows?'<ul class="lst">'+rows+'</ul>':(hasAuto&&E.auto?'<p class="small muted" style="margin:8px 0 0">Sin noticias de impacto en el calendario automático.</p>':''))+'<div class="acts" style="margin-top:10px">'+adds+(hasAuto&&!E.auto?'<button class="btn sm" data-n="reset|'+ds+'">Volver al automático</button>':'')+'</div>'+(typeof accNewsHTML==='function'?accNewsHTML(ds):'')+(hasAuto&&E.auto&&rows?'<p class="small muted" style="margin:8px 0 0">Datos automáticos. Si cambias algo, este día pasa a ser manual.</p>':'')+'</section>';
 }
 function renderNoticias(){
   const N=newsState(),today=todayES(),w=dowOf(today),wk=(w===6||w===0);
