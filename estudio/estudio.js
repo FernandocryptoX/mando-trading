@@ -49,38 +49,11 @@ function srsStats(){
   GLOSSARY.forEach(g=>{const s=S.cfg.srs[g.t];if(!s)nuevos++;else if(s.due<=today)vencidos++;if(s&&s.box>=4)dominados++;});
   return{nuevos,vencidos,dominados,total:GLOSSARY.length,pend:nuevos+vencidos};
 }
-function srsTodo(){
-  const s=srsStats();if(!s.pend)return '';
-  return '<a class="todo" href="#repaso" style="text-decoration:none;color:inherit"><b>Repasa '+Math.min(10,s.pend)+' conceptos del curso</b><span>'+s.pend+' pendientes</span></a>';
-}
+function srsTodo(){return '';}   // el repaso con tarjetas se quitó
 function studyCard(){
-  const s=srsStats();
-  return '<section class="card"><h3>Estudio</h3><p style="margin:0 0 10px">'+(s.pend?'<b>'+s.pend+'</b> conceptos por repasar.':'Repaso al día.')+' Llevas '+s.dominados+' de '+s.total+' dominados.</p><div class="acts"><a class="btn pri" href="#repaso" style="text-decoration:none;display:inline-grid;place-items:center">Repasar</a><a class="btn" href="#estudio" style="text-decoration:none;display:inline-grid;place-items:center">Apuntes</a></div></section>';
+  const n=DAYS.filter(d=>d.status==='done').length;
+  return '<section class="card"><h3>Estudio</h3><p style="margin:0 0 10px">'+n+' de '+TOTAL_DAYS+' días del curso apuntados.</p><div class="acts"><a class="btn pri" href="#estudio" style="text-decoration:none;display:inline-grid;place-items:center">Apuntes</a><a class="btn" href="#glosario" style="text-decoration:none;display:inline-grid;place-items:center">Glosario</a></div></section>';
 }
-let repasoSesion=null;
-function startRepaso(){
-  const q=srsQueue();
-  // primero los vencidos y luego los nuevos, máximo 10 por sesión
-  const venc=q.filter(g=>S.cfg.srs[g.t]),nue=q.filter(g=>!S.cfg.srs[g.t]);
-  repasoSesion={cola:venc.concat(nue).slice(0,10),i:0,ok:0,mostrada:false};
-}
-function renderRepaso(){
-  ensureStudy();const st=srsStats();
-  if(!repasoSesion)startRepaso();
-  const R=repasoSesion;let body='';
-  if(!R.cola.length){
-    body='<h2>Todo repasado por hoy</h2><p class="muted">No tienes conceptos pendientes. Vuelve mañana o repasa libremente en el glosario.</p>';
-  }else if(R.i>=R.cola.length){
-    body='<h2>Sesión terminada</h2><p>Has repasado <b>'+R.cola.length+'</b> conceptos y te sabías <b>'+R.ok+'</b>.</p><p class="muted">Los que fallaste vuelven mañana; los que acertaste, más adelante.</p><div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-study="repnueva">Repasar otros 10</button></div>';
-  }else{
-    const g=R.cola[R.i];
-    body='<div class="kicker"><span>Tarjeta '+(R.i+1)+' de '+R.cola.length+'</span></div><div class="term" style="padding:28px 20px;text-align:center"><h3 style="font-size:40px">'+g.t+'</h3></div>'+
-      (R.mostrada?'<div class="term more"><p>'+g.d+'</p><div class="mo">'+g.days.map(n=>'<a class="dlink" href="#dia-'+n+'">Día '+n+'</a>').join('')+'</div></div><div class="acts" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn danger" data-study="srs" data-v="0">No me lo sabía</button><button class="btn pri" data-study="srs" data-v="1">Me lo sabía</button></div>'
-        :'<p class="muted">Intenta explicarlo con tus palabras antes de mirar.</p><div class="acts"><button class="btn pri" data-study="mostrar">Mostrar definición</button></div>');
-  }
-  setStudyView('<div class="kicker"><span class="tag t-rut">Repaso</span><span>'+st.vencidos+' vencidos · '+st.nuevos+' nuevos · '+st.dominados+' dominados de '+st.total+'</span></div><h1><span class="u">Repaso'+UL_SVG+'</span></h1><p class="sub">Tarjetas del glosario con repetición espaciada: lo que fallas vuelve pronto y lo que dominas se espacia.</p>'+body+'<div class="foot"><a href="#estudio">← Estudio</a><a href="#glosario">Glosario →</a></div>');
-}
-
 /* ---------- vistas ---------- */
 function setStudyView(inner){
   $('#view').innerHTML='<div class="wrap study'+(S.cfg.repaso?' repaso':'')+'"><header class="top" style="padding-bottom:14px"><div><div class="kick">Zona de estudio</div></div>'+syncChip()+'</header><article class="sheet" id="sheet">'+inner+'</article></div>';
@@ -95,10 +68,9 @@ function renderEstudio(){
   }
   const open=DUDAS.filter(d=>!S.cfg.checks['dud-'+d.id]).length;
   setStudyView('<div class="kicker"><span class="tag t-tec">Estudio</span><span>Bootcamp · Xavi Ruyra</span></div><h1><span class="u">Estudio'+UL_SVG+'</span></h1>'+
-   '<p class="sub">Todo el curso en un sitio: apuntes por día, glosario, tu sistema y repaso para no olvidar nada.</p><p class="muted" style="margin-top:-6px">Curso en construcción: <b>'+DAYS.filter(d=>d.status==="done").length+' de '+TOTAL_DAYS+'</b> días apuntados. Los nuevos aparecen aquí al añadirlos.</p>'+
+   '<p class="sub">Todo el curso en un sitio: apuntes por día, glosario, tu sistema y tus dudas.</p><p class="muted" style="margin-top:-6px">Curso en construcción: <b>'+DAYS.filter(d=>d.status==="done").length+' de '+TOTAL_DAYS+'</b> días apuntados. Los nuevos aparecen aquí al añadirlos.</p>'+
    '<input id="qEst" class="glq" type="search" placeholder="Buscar en todos los apuntes…" autocomplete="off" aria-label="Buscar en los apuntes"><div id="qRes"></div>'+
    '<div id="estBody"><div class="tiles" style="margin-bottom:18px">'+
-   '<a class="tile" href="#repaso"><b>Repaso del día</b><small>'+st.pend+' pendientes</small></a>'+
    '<a class="tile" href="#glosario"><b>Glosario</b><small>'+GLOSSARY.length+' conceptos</small></a>'+
    '<a class="tile" href="#sistema"><b>Mi sistema</b><small>receta de entrada</small></a>'+
    '<a class="tile" href="#dudas"><b>Dudas pendientes</b><small>'+open+' abiertas</small></a>'+
@@ -178,7 +150,7 @@ function renderPortada(){
 function renderStudio(h){
   ensureStudy();
   const m=/^dia-(\d+)$/.exec(h);
-  if(m)renderDia(+m[1]);else({estudio:renderEstudio,portada:renderPortada,glosario:renderGlosario,sistema:renderSistema,dudas:renderDudas,repaso:renderRepaso})[h]();
+  if(m)renderDia(+m[1]);else({estudio:renderEstudio,portada:renderPortada,glosario:renderGlosario,sistema:renderSistema,dudas:renderDudas,repaso:renderEstudio})[h]();
 }
 
 /* ---------- campos de texto, casillas y acciones del estudio ---------- */
@@ -200,11 +172,4 @@ document.addEventListener('click',e=>{
   ensureStudy();const k=a.dataset.study;
   if(k==='rolled'){S.cfg.rolled[a.dataset.code]=true;saveCfg();render();toast('Anotado');}
   else if(k==='repasomodo'){S.cfg.repaso=!S.cfg.repaso;saveCfg();render();}
-  else if(k==='mostrar'){repasoSesion.mostrada=true;renderRepaso();}
-  else if(k==='repnueva'){startRepaso();renderRepaso();}
-  else if(k==='srs'){
-    const R=repasoSesion,g=R.cola[R.i],ok=a.dataset.v==='1',s=S.cfg.srs[g.t]||{box:0,due:todayES()};
-    s.box=ok?Math.min(5,s.box+1):1;s.due=addD(todayES(),BOX_DAYS[s.box]||1);S.cfg.srs[g.t]=s;
-    if(ok)R.ok++;R.i++;R.mostrada=false;saveCfg();renderRepaso();
-  }
 });

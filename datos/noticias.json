@@ -1,8 +1,9 @@
 {
- "updated": "2026-11-18T14:26:42.354Z",
- "source": "ForexFactory (feed FairEconomy) · solo USD, impacto medio y alto · hora de Nueva York",
+ "updated": "2026-11-22T12:00:00.000Z",
+ "source": "ForexFactory (feed FairEconomy y capturas) · solo USD, impacto medio y alto · hora de Nueva York",
  "weeks": [
-  "2026-11-16"
+  "2026-11-16",
+  "2026-11-23"
  ],
  "days": {
   "2026-11-16": [
@@ -62,6 +63,70 @@
     "title": "Revised UoM Inflation Expectations",
     "impact": "Medium"
    }
-  ]
+  ],
+  "2026-11-23": [
+   {
+    "k": "otra",
+    "t": "09:45",
+    "title": "Flash Manufacturing PMI",
+    "impact": "Medium",
+    "fc": "54.5",
+    "prev": "54.9"
+   },
+   {
+    "k": "otra",
+    "t": "09:45",
+    "title": "Flash Services PMI",
+    "impact": "Medium",
+    "fc": "55.6",
+    "prev": "56.1"
+   }
+  ],
+  "2026-11-24": [
+   {
+    "k": "otra",
+    "t": "10:00",
+    "title": "CB Consumer Confidence",
+    "impact": "Medium",
+    "fc": "92.1",
+    "prev": "91.7"
+   }
+  ],
+  "2026-11-25": [
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Core PCE Price Index m/m",
+    "impact": "High",
+    "fc": "0.3%",
+    "prev": "0.3%"
+   },
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Prelim GDP q/q",
+    "impact": "High",
+    "fc": "3.5%",
+    "prev": "3.4%"
+   },
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Prelim GDP Price Index q/q",
+    "impact": "Medium",
+    "fc": "2.3%",
+    "prev": "2.3%"
+   },
+   {
+    "k": "otra",
+    "t": "08:30",
+    "title": "Unemployment Claims",
+    "impact": "Medium",
+    "fc": "201K",
+    "prev": "203K"
+   }
+  ],
+  "2026-11-26": [],
+  "2026-11-27": []
  }
 }
