@@ -56,7 +56,7 @@ function studyCard(){
 }
 /* ---------- vistas ---------- */
 function setStudyView(inner){
-  $('#view').innerHTML='<div class="wrap study'+(S.cfg.repaso?' repaso':'')+'"><header class="top" style="padding-bottom:14px"><div><div class="kick">Zona de estudio</div></div>'+syncChip()+'</header><article class="sheet" id="sheet">'+inner+'</article></div>';
+  $('#view').innerHTML='<div class="wrap study"><header class="top" style="padding-bottom:14px"><div><div class="kick">Zona de estudio</div></div>'+syncChip()+'</header><article class="sheet" id="sheet">'+inner+'</article></div>';
   bindFields();
 }
 function renderEstudio(){
@@ -75,7 +75,7 @@ function renderEstudio(){
    '<a class="tile" href="#sistema"><b>Mi sistema</b><small>receta de entrada</small></a>'+
    '<a class="tile" href="#dudas"><b>Dudas pendientes</b><small>'+open+' abiertas</small></a>'+
    '<a class="tile" href="#portada"><b>Mi porqué</b><small>portada</small></a>'+
-   '<button class="tile" data-study="repasomodo" style="text-align:left;font:inherit;color:inherit"><b>Modo repaso</b><small>'+(S.cfg.repaso?'activado: solo lo esencial':'apagado')+'</small></button></div>'+
+   '</div>'+
    '<div class="dgrid">'+cards.join('')+'</div></div>');
   const q=$('#qEst');
   q.addEventListener('input',()=>{
@@ -171,5 +171,4 @@ document.addEventListener('click',e=>{
   const a=e.target.closest('[data-study]');if(!a)return;
   ensureStudy();const k=a.dataset.study;
   if(k==='rolled'){S.cfg.rolled[a.dataset.code]=true;saveCfg();render();toast('Anotado');}
-  else if(k==='repasomodo'){S.cfg.repaso=!S.cfg.repaso;saveCfg();render();}
 });

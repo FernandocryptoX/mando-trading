@@ -9,6 +9,46 @@
 const CLOUD_SKIP=['newsAuto','lastBackup'];      // se calculan en cada dispositivo
 var CLOUD={fs:null,au:null,uid:null,email:null,base:'',ready:false,unsubs:[],timers:{},first:{t:false,c:false}};
 
+/* ---------- cuentas: fusión por cuenta (nunca se pierde una cuenta porque otro dispositivo tenga una lista vieja) ----------
+   Cada cuenta lleva una marca u (cuándo se editó). Al recibir la lista de la nube se unen las dos: gana la cuenta editada
+   más tarde, las cuentas que solo están en un lado se conservan, y solo un borrado explícito (marca en acc.del) quita una. */
+var ACC_SIG=null;
+function accSigAll(){const o={};((S.cfg.acc||{}).list||[]).forEach(a=>{const c=Object.assign({},a);delete c.u;o[a.id]=JSON.stringify(c);});return o;}
+function accStamp(){
+  const cur=accSigAll();
+  if(ACC_SIG===null){ACC_SIG=cur;return;}
+  ((S.cfg.acc||{}).list||[]).forEach(a=>{if(ACC_SIG[a.id]!==cur[a.id])a.u=Date.now();});
+  ACC_SIG=cur;
+}
+function accMerge(loc,rem){
+  loc=loc||{list:[]};rem=rem||{list:[]};
+  const del={};[loc.del,rem.del].forEach(d=>Object.keys(d||{}).forEach(k=>{del[k]=Math.max(del[k]||0,d[k]);}));
+  const L={},R={};(loc.list||[]).forEach(a=>{L[a.id]=a;});(rem.list||[]).forEach(a=>{R[a.id]=a;});
+  const out=[];let toLocal=false,toRemote=false;
+  Object.keys(Object.assign({},L,R)).sort().forEach(id=>{
+    const l=L[id],r=R[id];let w;
+    if(l&&r){const lu=l.u||0,ru=r.u||0;if(ru>lu){w=r;toLocal=true;}else{w=l;if(lu>ru)toRemote=true;}}
+    else if(l){w=l;toRemote=true;}
+    else{w=r;toLocal=true;}
+    if(del[id]&&del[id]>=(w.u||0)){if(l)toLocal=true;if(r)toRemote=true;return;}
+    out.push(w);
+  });
+  const dl=JSON.stringify(loc.del||{}),dr=JSON.stringify(rem.del||{}),dm=JSON.stringify(del);
+  if(dm!==dl)toLocal=true;if(dm!==dr)toRemote=true;
+  return{acc:Object.assign({},loc,{list:out,del}),toLocal,toRemote};
+}
+/* copias de las cuentas en este dispositivo (las 10 últimas distintas) */
+function accBackupNow(why){
+  try{
+    const acc=S.cfg.acc;if(!acc||!(acc.list||[]).length)return;
+    const j=JSON.stringify(acc),arr=JSON.parse(localStorage.getItem('mando-acc-backups')||'[]');
+    if(arr.length&&arr[0].j===j)return;
+    if(arr.length&&!why&&Date.now()-arr[0].ts<60000)return;
+    arr.unshift({ts:Date.now(),why:why||'',n:acc.list.length,j});
+    localStorage.setItem('mando-acc-backups',JSON.stringify(arr.slice(0,10)));
+  }catch(e){}
+}
+
 function cloudMeta(){S.sync=S.sync||{};S.sync.cu=S.sync.cu||{};S.sync.tomb=S.sync.tomb||{};return S.sync;}
 function cloudErr(e){CLOUD.lastErr=(e&&(e.code||e.message))||'error';setSync('err');}
 const cloudEmpty=j=>j===undefined||j==='{}'||j==='[]'||j==='null'||j==='""'||j==='0'||j==='false';
@@ -88,6 +128,17 @@ function cloudApplyCfg(snap){
     const k=doc.id,d=doc.data()||{};
     if(CLOUD_SKIP.includes(k)||typeof d.j!=='string')return;
     seen[k]=1;
+    if(k==='acc'){
+      let rem=null;try{rem=JSON.parse(d.j);}catch(e){}
+      if(rem){
+        const mg=accMerge(S.cfg.acc,rem);
+        if(mg.toLocal){cloudBackupOnce();accBackupNow('antes de unir con la nube');S.cfg.acc=mg.acc;changed=true;accStamp();ACC_SIG=accSigAll();}
+        m.lastj[k]=d.j;
+        if(mg.toRemote){m.cu[k]=Date.now();cloudFlushCfg();}
+        else{m.cu[k]=d.u||0;m.lastj[k]=JSON.stringify(S.cfg.acc);}
+        return;
+      }
+    }
     const lu=m.cu[k]||0,ru=d.u||0,lj=JSON.stringify(S.cfg[k]);
     if(ru>lu){
       if(lj!==d.j){cloudBackupOnce();S.cfg[k]=JSON.parse(d.j);changed=true;}

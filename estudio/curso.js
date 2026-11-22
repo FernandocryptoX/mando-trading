@@ -1110,7 +1110,7 @@ const DAYS = [
       {c:'m', ico:'🔎', h:'En 1 h no esperes a que lo revisite', p:'Si toca el FVG de 1 h, <b>baja a 15, 30 o 5 min</b> y mira si ya tomó algún low: dentro de un gap de 1 h caben 2–4 gaps de 15 min. No vas a esperar horas a que toque, salga y vuelva a tocar: casi nunca ocurre.'}
     ]},
 
-    {t:'h2', text:'Otros key levels (ya los conoces)', tape:'repaso'},
+    {t:'h2', text:'Otros key levels (ya los conoces)', tape:'ya visto'},
     {t:'html', cls:'viz', html:`
       <div class="road">
         <span class="s">NDOG / NWOG</span><span class="ar">·</span>

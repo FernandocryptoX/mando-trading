@@ -230,7 +230,7 @@ function accAct(s){
   if(k==='day'){sdDialog(t);return;}
   if(k==='hist'){histDialog(t);return;}
   if(k==='sync'){syncDialog(t);return;}
-  if(k==='del'){dialog('<h2 style="font-size:28px">Borrar «'+esc(t.plan)+'»</h2><p>Se borra la cuenta con su historial, cobros y gastos. No se puede deshacer.</p>',[{label:'Cancelar'},{label:'Borrar',primary:true,run:()=>{acc.list=acc.list.filter(x=>x.id!==t.id);saveCfg();renderBanca();}}]);return;}
+  if(k==='del'){dialog('<h2 style="font-size:28px">Borrar «'+esc(t.plan)+'»</h2><p>Se borra la cuenta con su historial, cobros y gastos. No se puede deshacer.</p>',[{label:'Cancelar'},{label:'Borrar',primary:true,run:()=>{accBackupNow('antes de borrar una cuenta');acc.del=acc.del||{};acc.del[t.id]=Date.now();acc.list=acc.list.filter(x=>x.id!==t.id);saveCfg();renderBanca();}}]);return;}
   if(ACC_ST[k]){
     dialog('<h2 style="font-size:28px">'+ACC_ST[k].i+' '+ACC_ST[k].n+'</h2><div class="fgrid"><label class="field">Fecha<input id="aD" type="date" value="'+today+'"></label><label class="field">Nota (opcional)<input id="aN" placeholder="'+(k==='lost'?'Qué pasó':'')+'"></label></div>',
      [{label:'Cancelar'},{label:'Guardar',primary:true,run:()=>{t.st=k;t.hist.push({ts:accTs(document.getElementById('aD').value),st:k,note:document.getElementById('aN').value.trim()});saveCfg();renderBanca();}}]);return;}
@@ -251,4 +251,19 @@ function bancaCard(){
       m('Balance',plain(x.s.bal))+(x.s.margin!=null?m('Te queda',plain(x.s.margin),low?'neg':''):'')+(x.s.sug!=null?m('Riesgo máx.',plain(x.s.sug)):'')+(x.s.capDay?m('Tope hoy',plain(x.s.capDay)):'')+'</div></div>';
   }).join('');
   return '<section class="card"><div class="row"><h3 style="margin:0">Banca</h3><a class="small" href="#banca" style="color:var(--yellow)">Abrir</a></div><div class="stats" style="margin-top:10px">'+stat('Cuentas activas',s.eval+s.funded)+stat('Gastado',plain(s.spent))+stat('Neto',L.length?money(s.net):'—',cls(s.net))+'</div>'+tiles+'</section>';
+}
+
+/* ---------- recuperar cuentas desde las copias de este dispositivo ---------- */
+function accRestoreDialog(){
+  let arr=[];try{arr=JSON.parse(localStorage.getItem('mando-acc-backups')||'[]');}catch(e){}
+  const f=ms=>new Date(ms).toLocaleString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  if(!arr.length){dialog('<h2 style="font-size:22px">Recuperar cuentas</h2><p class="small muted">Este dispositivo todavía no tiene copias de tus cuentas. Se hacen solas cada vez que cambias algo.</p>',[{label:'Cerrar'}]);return;}
+  dialog('<h2 style="font-size:22px">Recuperar cuentas</h2><p class="small muted">Copias de tus cuentas guardadas en este dispositivo. Elige una: se añaden las cuentas que ahora no tengas, sin tocar las que ya están.</p>'+arr.map((x,i)=>'<label class="srow" style="cursor:pointer"><span class="sn"><input type="radio" name="bkSel" value="'+i+'"'+(i===0?' checked':'')+' style="width:auto;min-height:0;margin-right:8px">'+esc(f(x.ts))+'</span><span class="sm">'+x.n+(x.n===1?' cuenta':' cuentas')+(x.why?' · '+esc(x.why):'')+'</span><b></b></label>').join(''),
+    [{label:'Cancelar'},{label:'Recuperar',primary:true,run:()=>{
+      const sel=document.querySelector('input[name=bkSel]:checked');if(!sel)return false;
+      let bk=null;try{bk=JSON.parse(arr[+sel.value].j);}catch(e){}
+      if(!bk){toast('Esa copia no se puede leer');return false;}
+      const A=accData();let n=0;
+      (bk.list||[]).forEach(a=>{if(a&&a.id&&!A.list.some(x=>x.id===a.id)){A.list.push(JSON.parse(JSON.stringify(a)));if(A.del)delete A.del[a.id];n++;}});
+      if(n)saveCfg();renderBanca();toast(n?'Recuperadas '+n+(n===1?' cuenta':' cuentas'):'No faltaba ninguna cuenta');}}]);
 }

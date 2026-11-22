@@ -309,6 +309,7 @@ let S={trades:{},cfg:{goal:30000,btGoalMin:180,btLog:[],timer:null,reviews:{},cu
 let FIRST_RUN=false;
 try{const raw=localStorage.getItem(LS);if(raw===null)FIRST_RUN=true;const j=JSON.parse(raw||'null');if(j){S.trades=j.trades||{};Object.assign(S.cfg,j.cfg||{});S.sync=j.sync||{};}}catch(e){}
 const saveLocal=()=>{try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){}};
+if(typeof accStamp==='function')accStamp();   // línea base de las cuentas al arrancar: lo que ya había no cuenta como editado
 const DB={base:null,trades:null,seeded:false,chain:Promise.resolve()};
 let syncState='wait';
 function setSync(s){syncState=s;const el=$('#syncChip');if(el)el.outerHTML=syncChip();}
@@ -316,7 +317,7 @@ const syncChip=()=>{const t={wait:['','Conectando…'],local:['',location.hostna
 const enqueue=fn=>{DB.chain=DB.chain.then(fn).catch(()=>setSync('err'));};
 const clean=o=>JSON.parse(JSON.stringify(o));
 let cfgT=null;
-function saveCfg(){if(typeof cloudCfg==='function')cloudCfg();saveLocal();if(!DB.base)return;clearTimeout(cfgT);cfgT=setTimeout(()=>enqueue(()=>DB.base.set({cfg:clean(S.cfg)})),500);}
+function saveCfg(){if(typeof accStamp==='function'){accStamp();accBackupNow();}if(typeof cloudCfg==='function')cloudCfg();saveLocal();if(!DB.base)return;clearTimeout(cfgT);cfgT=setTimeout(()=>enqueue(()=>DB.base.set({cfg:clean(S.cfg)})),500);}
 function putTrade(t){if(typeof cloudTrade==='function')cloudTrade(t);S.trades[t.id]=t;saveLocal();if(DB.trades)enqueue(()=>DB.trades.doc(t.id).set(clean(t)));}
 function delTrade(id){if(typeof imgDropTrade==='function')imgDropTrade(S.trades[id]);delete S.trades[id];if(typeof cloudDelete==='function')cloudDelete(id);saveLocal();if(DB.trades)enqueue(()=>DB.trades.doc(id).delete());}
 async function initDb(){
@@ -631,7 +632,7 @@ function renderMas(){
    '<section class="card"><h3>Módulos</h3><div class="tiles"><a class="tile" href="#banca"><b>Banca</b><small>cuentas y retorno por prop firm</small></a><a class="tile" href="#noticias"><b>Semana de noticias</b><small>FOMC, NFP, CPI y festivos</small></a></div></section>'+
    '<section class="card"><h3>Cuenta y sincronización</h3><p class="small muted">'+(typeof CLOUD!=='undefined'&&CLOUD.uid?'Sesión iniciada como '+esc(CLOUD.email||'')+'. Tus datos se igualan solos entre tus dispositivos.':'Inicia sesión con el mismo correo en el móvil y en los ordenadores para tener los mismos datos en todos.')+'</p><div class="acts"><button class="btn pri" data-cloud="1">'+(typeof CLOUD!=='undefined'&&CLOUD.uid?'Ver cuenta':'Iniciar sesión')+'</button>'+(typeof CLOUD!=='undefined'&&CLOUD.uid?'<button class="btn" data-legacy="1">Traer datos de mi libreta antigua</button>':'')+'</div></section>'+
    '<section class="card"><h3>Metas</h3><div class="fgrid"><label class="field">Meta mensual ($)<input id="cGoal" inputmode="decimal" value="'+S.cfg.goal+'"></label><label class="field">Backtesting semanal (horas)<input id="cBt" inputmode="decimal" value="'+(S.cfg.btGoalMin/60)+'"></label></div></section>'+
-   '<section class="card"><h3>Datos</h3><p class="small muted">'+({ok:'Tus datos se guardan en tu cuenta y se ven igual en el móvil y en el PC.',local:'Ahora mismo se guardan solo en este navegador.',wait:'Conectando con la nube…',err:'No se pudo conectar con la nube. Tus datos siguen guardados en este navegador.'})[syncState]+'</p><div class="acts"><button class="btn" data-act="backup">Descargar copia de seguridad</button><button class="btn" data-act="restore">Restaurar copia</button><button class="btn" data-act="copydata">Copiar operaciones y cuenta</button></div><div class="acts" style="margin-top:8px"><button class="btn" data-act="copyall">Copiar todos mis datos</button><button class="btn" data-act="pastedata">Pegar datos</button></div><p class="small muted" style="margin:12px 0 6px">Para pasar tus datos al móvil o a otro ordenador: «Copiar todos mis datos» aquí, te lo envías por WhatsApp o correo, y en el otro dispositivo pulsas «Pegar datos». También sirve descargar la copia y restaurarla.'+(S.cfg.lastBackup?' Última copia: '+new Date(S.cfg.lastBackup).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+'.':'')+'</p><div class="acts"><button class="btn" data-act="seed">Cargar mis datos iniciales</button><button class="btn" data-act="exload">Cargar datos de ejemplo</button><button class="btn danger" data-act="exclear">Borrar ejemplos</button></div></section>'+
+   '<section class="card"><h3>Datos</h3><p class="small muted">'+({ok:'Tus datos se guardan en tu cuenta y se ven igual en el móvil y en el PC.',local:'Ahora mismo se guardan solo en este navegador.',wait:'Conectando con la nube…',err:'No se pudo conectar con la nube. Tus datos siguen guardados en este navegador.'})[syncState]+'</p><div class="acts"><button class="btn" data-act="backup">Descargar copia de seguridad</button><button class="btn" data-act="accrestore">Recuperar cuentas</button><button class="btn" data-act="restore">Restaurar copia</button><button class="btn" data-act="copydata">Copiar operaciones y cuenta</button></div><div class="acts" style="margin-top:8px"><button class="btn" data-act="copyall">Copiar todos mis datos</button><button class="btn" data-act="pastedata">Pegar datos</button></div><p class="small muted" style="margin:12px 0 6px">Para pasar tus datos al móvil o a otro ordenador: «Copiar todos mis datos» aquí, te lo envías por WhatsApp o correo, y en el otro dispositivo pulsas «Pegar datos». También sirve descargar la copia y restaurarla.'+(S.cfg.lastBackup?' Última copia: '+new Date(S.cfg.lastBackup).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+'.':'')+'</p><div class="acts"><button class="btn" data-act="seed">Cargar mis datos iniciales</button><button class="btn" data-act="exload">Cargar datos de ejemplo</button><button class="btn danger" data-act="exclear">Borrar ejemplos</button></div></section>'+
    '</div></div>';
   const g=$('#cGoal'),b=$('#cBt');
   g.onchange=()=>{const v=num(g.value);if(v>0){S.cfg.goal=v;saveCfg();toast('Meta guardada');}};
@@ -822,6 +823,7 @@ document.addEventListener('click',e=>{
   else if(act==='pastedata')pasteData();
   else if(act==='restore')$('#restoreFile').click();
   else if(act==='seed')confirmSeed();
+  else if(act==='accrestore')accRestoreDialog();
   else if(act==='exload'){loadExamples();}
   else if(act==='exclear'){Object.values(S.trades).filter(t=>t.ex).forEach(t=>delTrade(t.id));render();toast('Ejemplos borrados');}
 });
@@ -891,7 +893,7 @@ function mergeData(o){
   return{nt,na};
 }
 function askReplace(o,what){
-  dialog('<h2 style="font-size:28px">'+what+'</h2><p><b>Unir</b> añade solo las operaciones y cuentas que aún no tienes y <b>no borra nada</b>. <b>Reemplazar</b> sustituye todos los datos que tienes ahora (operaciones, cuentas, notas, repaso) y no se puede deshacer.</p>',
+  dialog('<h2 style="font-size:28px">'+what+'</h2><p><b>Unir</b> añade solo las operaciones y cuentas que aún no tienes y <b>no borra nada</b>. <b>Reemplazar</b> sustituye todos los datos que tienes ahora (operaciones, cuentas y notas) y no se puede deshacer.</p>',
     [{label:'Cancelar'},{label:'Reemplazar',run:()=>{applyData(o);render();toast('Datos cargados');}},{label:'Unir sin borrar',primary:true,run:()=>{const r=mergeData(o);render();toast('Añadidas '+r.nt+' operaciones y '+r.na+' cuentas');}}]);
 }
 function confirmSeed(){
@@ -910,6 +912,12 @@ initDb();
 cloudInit();
 loadAutoNews();
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+/* si sale una versión nueva, la app se recarga sola (así ningún dispositivo se queda con código viejo que pise los datos) */
+if('serviceWorker' in navigator){
+  const hadCtl=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl)return;const go=()=>{if(typeof F!=='undefined'&&F){setTimeout(go,5000);return;}location.reload();};go();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{});});
+}
 if(FIRST_RUN){fetch('datos/semilla.json').then(r=>r.ok?r.json():null).then(j=>{if(j&&j.trades){applyData(j,true);cloudBaseline();render();toast('He cargado tus datos iniciales');}}).catch(()=>{});}
 </script>
 
