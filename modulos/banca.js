@@ -47,7 +47,7 @@ function accStateHTML(a){
   if(s.dayLim)h+='<div class="stats" style="margin-top:10px">'+stat('Pérdida diaria máx.',plain(s.dayLim))+stat('Hoy',s.todayNet?money(s.todayNet):'—',cls(s.todayNet))+stat('Hoy te quedan',plain(s.dayLeft),s.dayLeft<0.25*s.dayLim?'neg':'')+'</div>'+(s.dayFloor!=null?'<p class="small muted" style="margin:6px 0 0">Hoy se rompe la cuenta si baja de <b>'+plain(s.dayFloor)+'</b>'+(a.dayPct?' ('+a.dayPct+' % del balance con el que empezó el día)':'')+'.</p>':'');
   if(s.min!=null&&s.target!=null&&s.target>s.min){const sp=v=>Math.max(0,Math.min(100,100*(v-s.min)/(s.target-s.min))).toFixed(1);
     h+='<div class="rng"><u style="left:'+sp(s.start)+'%"></u><i style="left:'+sp(s.bal)+'%"></i></div><div class="row small muted"><span>mínimo '+plain(s.min)+'</span><span>objetivo '+plain(s.target)+'</span></div>';}
-  if(s.cons)h+='<div class="stats" style="margin-top:10px">'+stat('Mejor día',plain(s.cons.best))+stat('Consistencia',s.cons.pct==null?'—':s.cons.pct.toFixed(1).replace('.',',')+' %',s.cons.pct!=null&&s.cons.pct>s.cons.lim?'neg':'')+stat('Máximo permitido',s.cons.lim+' %')+'</div>'+(s.cons.pct!=null&&s.cons.pct>s.cons.lim?'<p class="small" style="margin:6px 0 0">Para cumplirla te faltan <b>'+plain(s.cons.need)+'</b> de beneficio más, sin otro día mejor.</p>':'');
+  if(s.cons)h+='<div class="stats" style="margin-top:10px">'+stat('Mejor día',plain(s.cons.best))+stat('Consistencia',s.cons.pct==null?'—':s.cons.pct.toFixed(1).replace('.',',')+' %',s.cons.pct!=null&&s.cons.pct>s.cons.lim?'neg':'')+stat('Máximo permitido',s.cons.lim+' %')+'</div>'+(s.cons.best>0?'<p class="small" style="margin:6px 0 0">Para poder cobrar, tu beneficio total debe ser al menos <b>'+plain(s.cons.best/(s.cons.lim/100))+'</b> (tu mejor día ÷ '+s.cons.lim+' %). '+(s.cons.pct!=null&&s.cons.pct>s.cons.lim?'Te faltan <b>'+plain(s.cons.need)+'</b>: unos <b>'+Math.ceil(s.cons.need/s.cons.best)+'</b> días como tu mejor día ('+plain(s.cons.best)+'), sin perder y <b>sin que ninguno lo supere</b>, porque si un día lo supera, el listón sube.':'Ya la cumples.')+'</p>':'');
   if(s.nextPay){const dd=Math.ceil((s.nextPay-Date.now())/86400000);h+='<p class="small" style="margin:10px 0 0"><b>Cobro:</b> '+(dd<=0?'ya puedes pedirlo si cumples el resto':'podrás pedirlo el '+new Date(s.nextPay).toLocaleDateString('es-ES',{day:'numeric',month:'short'})+' (en '+dd+' días)')+(a.split?' · tu parte '+a.split+' %':'')+'</p>';}
   if(a.norms)h+='<p class="small" style="margin:10px 0 0"><b>Normas:</b> '+esc(a.norms)+'</p>';
   return h;
@@ -88,6 +88,20 @@ function histDialog(a){
       if(!L.length){toast('No he entendido ninguna línea: fecha e importe');return false;}
       L.forEach(x=>{const id='sd-'+a.id+'-'+x[0];sdSave(a,x[0],x[1],'Historial anterior',id,S.trades[id]&&S.trades[id].cr);});
       render();const s=accState(a);toast(L.length+(L.length===1?' día cargado':' días cargados')+(s?' · balance '+plain(s.bal):''));}}]);
+}
+/* ---------- carga única del historial de Instant Funded Pro 25K (8 operaciones del panel de MT5) ---------- */
+const IP_START='2026-09-11';
+const IP_DAYS=[];
+const ipAcc=()=>accData().list.find(x=>/instant/i.test(x.plan)&&/25/.test(x.plan))||accData().list.find(x=>/instant/i.test(x.plan));
+const instantPending=()=>{const a=ipAcc();return a&&!IP_DAYS.every(d=>S.trades['sd-ip-'+d[0]])?a:null;};
+function instantDays(){
+  const a=ipAcc();if(!a){toast('Crea primero la cuenta Instant Funded Pro 25K con la plantilla');return;}
+  const rows=IP_DAYS.map(d=>{const ex=Object.values(S.trades).filter(t=>t.acc===a.id&&t.date===d[0]&&t.res!=null&&t.id!=='sd-ip-'+d[0]).reduce((x,t)=>x+t.res,0);return{d:d[0],tot:d[1],add:Math.round((d[1]-ex)*100)/100};});
+  dialog('<h2 style="font-size:22px">Cargar tus días de Instant Funded Pro 25K</h2><p class="small muted">Resultado de cada día según tus 8 operaciones del panel. El 20 de noviembre ya lleva restadas las comisiones y swaps (−X,XX $), para que el balance salga igual que en tu panel: XX.XXX,XX $.</p>'+rows.map(r=>'<div class="srow"><span class="sn">'+esc(niceDate(r.d))+'</span><span class="sm">día completo</span><b class="'+cls(r.add)+'">'+(Math.abs(r.add)<0.005?'—':money(r.add))+'</b></div>').join('')+'<p class="small muted" style="margin:10px 0 0">También pongo como inicio de la cuenta el 11 de septiembre de 2026 (la primera operación es del 17) y dejo el mercado en CFDs.</p>',
+    [{label:'Cancelar'},{label:'Cargar',primary:true,run:()=>{
+      rows.forEach(r=>{const id='sd-ip-'+r.d;if(Math.abs(r.add)>=0.005)sdSave(a,r.d,r.add,'Historial anterior',id,S.trades[id]&&S.trades[id].cr);else if(S.trades[id])delTrade(id);});
+      if(a.date>IP_START){a.date=IP_START;a.hist.forEach(h=>{if(h.note==='Compra')h.ts=accTs(IP_START);});}
+      a.mkt='cfd';saveCfg();renderBanca();toast('Días cargados · balance '+plain((accState(a)||{}).bal));}}]);
 }
 function syncDialog(a){
   const s=accState(a);if(!s){toast('Pon primero el tamaño de la cuenta en «Editar»');return;}
@@ -168,7 +182,7 @@ function renderBanca(){
    '<div class="stats" style="margin-top:10px">'+stat('Cuentas',S0.n)+stat('Activas',S0.eval+S0.funded)+stat('Pasaron a funded',S0.passed+' de '+S0.n)+'</div></section>'+
    '<section class="card"><h3>Cobrado este mes</h3><div class="row"><b style="font-size:22px">'+plain(cobradoMes)+'</b><span class="muted">de '+plain(goal)+'</span></div><div class="bar"><i style="width:'+pct.toFixed(1)+'%"></i></div><p class="small muted" style="margin:0">La meta mensual se cambia en «Más».</p></section>'+
    chartsBanca(L)+(firmRows?'<section class="card"><h3>Retorno por prop firm</h3>'+firmRows+'<p class="small muted" style="margin:10px 0 0">Neto = cobros − lo pagado − otros gastos. Una cuenta perdida o cerrada sigue contando.</p></section>':'')+
-   '<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+(lucidPending()?'<section class="card hl"><h3>Falta registrar</h3><p class="small" style="margin:0 0 10px">Tus días 18, 19 y 20 de noviembre en LucidFlex 50K no están en el Diario. Los cargo con su resultado real y dejo las reglas de la cuenta.</p><button class="btn pri" data-bk="lucid|x">Cargar esos días</button></section>':'')+
+   '<div class="acts"><button class="btn pri" data-bk="new">Nueva cuenta</button></div>'+(instantPending()?'<section class="card hl"><h3>Falta registrar</h3><p class="small" style="margin:0 0 10px">Las 8 operaciones de tu Instant Funded Pro 25K (septiembre a noviembre) no están en el Diario. Las cargo por días, con el resultado real, para que el balance y la consistencia cuadren con tu panel.</p><button class="btn pri" data-bk="ipdays|x">Cargar esos días</button></section>':'')+(lucidPending()?'<section class="card hl"><h3>Falta registrar</h3><p class="small" style="margin:0 0 10px">Tus días 18, 19 y 20 de noviembre en LucidFlex 50K no están en el Diario. Los cargo con su resultado real y dejo las reglas de la cuenta.</p><button class="btn pri" data-bk="lucid|x">Cargar esos días</button></section>':'')+
    (L.length?L.map(card).join(''):'<section class="card empty"><h2>Todavía no hay cuentas</h2><p class="muted">Anota cada cuenta de prop firm que compres para saber si el negocio sale a cuenta.</p></section>')+
    '</div></div>';
 }
@@ -194,6 +208,7 @@ function accAct(s){
   const p=s.split('|'),k=p[0],acc=accData(),t=p[1]&&acc.list.find(x=>x.id===p[1]);
   if(k==='new'){accForm();return;}
   if(k==='lucid'){lucidDays();return;}
+  if(k==='ipdays'){instantDays();return;}
   if(k==='sdedit'){const tr=S.trades[p[1]],ac=tr&&acc.list.find(x=>x.id===tr.acc);if(ac)sdDialog(ac,tr);return;}
   if(!t)return;
   const today=dateOf(Date.now());
